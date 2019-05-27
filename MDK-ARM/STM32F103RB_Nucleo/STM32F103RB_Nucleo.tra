@@ -1,0 +1,73 @@
+*** Creating Trace Output File 'STM32F103RB_Nucleo\STM32F103RB_Nucleo.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_adc.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_adc_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_can.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_cec.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_cortex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_crc.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_dac.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_dac_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_dma.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_eth.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_flash.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_flash_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_gpio.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_gpio_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_hcd.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_i2c.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_i2s.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_irda.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_iwdg.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_mmc.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_nand.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_nor.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_pccard.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_pcd.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_pcd_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_pwr.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_rcc.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_rcc_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_rtc.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_rtc_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_sd.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_smartcard.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_spi.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_spi_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_sram.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_tim.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_tim_ex.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_uart.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_usart.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_wwdg.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_ll_fsmc.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_ll_sdmmc.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_ll_usb.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_hal_msp.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\main.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\stm32f1xx_it.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\flash.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\keyboard_drv.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\led.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\scenehome.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\system.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\system_stm32f1xx.o"'
+### List of Objects: adding '"stm32f103rb_nucleo\startup_stm32f103xb.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 "stm32f103rb_nucleo\stm32f1xx_hal.o" "stm32f103rb_nucleo\stm32f1xx_hal_adc.o" "stm32f103rb_nucleo\stm32f1xx_hal_adc_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_can.o" "stm32f103rb_nucleo\stm32f1xx_hal_cec.o" "stm32f103rb_nucleo\stm32f1xx_hal_cortex.o" "stm32f103rb_nucleo\stm32f1xx_hal_crc.o" "stm32f103rb_nucleo\stm32f1xx_hal_dac.o" "stm32f103rb_nucleo\stm32f1xx_hal_dac_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_dma.o" "stm32f103rb_nucleo\stm32f1xx_hal_eth.o" "stm32f103rb_nucleo\stm32f1xx_hal_flash.o" "stm32f103rb_nucleo\stm32f1xx_hal_flash_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_gpio.o" "stm32f103rb_nucleo\stm32f1xx_hal_gpio_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_hcd.o" "stm32f103rb_nucleo\stm32f1xx_hal_i2c.o" "stm32f103rb_nucleo\stm32f1xx_hal_i2s.o" "stm32f103rb_nucleo\stm32f1xx_hal_irda.o" "stm32f103rb_nucleo\stm32f1xx_hal_iwdg.o" "stm32f103rb_nucleo\stm32f1xx_hal_mmc.o" "stm32f103rb_nucleo\stm32f1xx_hal_nand.o" "stm32f103rb_nucleo\stm32f1xx_hal_nor.o" "stm32f103rb_nucleo\stm32f1xx_hal_pccard.o" "stm32f103rb_nucleo\stm32f1xx_hal_pcd.o" "stm32f103rb_nucleo\stm32f1xx_hal_pcd_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_pwr.o" "stm32f103rb_nucleo\stm32f1xx_hal_rcc.o" "stm32f103rb_nucleo\stm32f1xx_hal_rcc_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_rtc.o" "stm32f103rb_nucleo\stm32f1xx_hal_rtc_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_sd.o" "stm32f103rb_nucleo\stm32f1xx_hal_smartcard.o" "stm32f103rb_nucleo\stm32f1xx_hal_spi.o" "stm32f103rb_nucleo\stm32f1xx_hal_spi_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_sram.o" "stm32f103rb_nucleo\stm32f1xx_hal_tim.o" "stm32f103rb_nucleo\stm32f1xx_hal_tim_ex.o" "stm32f103rb_nucleo\stm32f1xx_hal_uart.o" "stm32f103rb_nucleo\stm32f1xx_hal_usart.o" "stm32f103rb_nucleo\stm32f1xx_hal_wwdg.o" "stm32f103rb_nucleo\stm32f1xx_ll_fsmc.o" "stm32f103rb_nucleo\stm32f1xx_ll_sdmmc.o" "stm32f103rb_nucleo\stm32f1xx_ll_usb.o" "stm32f103rb_nucleo\stm32f1xx_hal_msp.o" "stm32f103rb_nucleo\main.o" "stm32f103rb_nucleo\stm32f1xx_it.o" "stm32f103rb_nucleo\flash.o" "stm32f103rb_nucleo\keyboard_drv.o" "stm32f103rb_nucleo\led.o" "stm32f103rb_nucleo\scenehome.o" "stm32f103rb_nucleo\system.o" "stm32f103rb_nucleo\system_stm32f1xx.o" "stm32f103rb_nucleo\startup_stm32f103xb.o" 
+--library_type=microlib --strict --scatter "STM32F103RB_Nucleo\STM32F103RB_Nucleo.sct" 
+--diag_suppress=L6329 --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list "STM32F103RB_Nucleo.map" -o STM32F103RB_Nucleo\STM32F103RB_Nucleo.axf### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: 'STM32F103RB_Nucleo\STM32F103RB_Nucleo.axf'
+### ADS-LD Command File: 'STM32F103RB_Nucleo\STM32F103RB_Nucleo.lnp'
+### Checking for dirty Components...
+### Creating CmdFile 'STM32F103RB_Nucleo\STM32F103RB_Nucleo.lnp', Handle=0x0000074C
+### Writing '.lnp' file
+### ADS-LD Command file 'STM32F103RB_Nucleo\STM32F103RB_Nucleo.lnp' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.
