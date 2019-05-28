@@ -16,6 +16,8 @@
 #include "AD_spi.h"
 #include "delay.h"
 
+osThreadId LED_ThreadHandle, AD_ThreadHandle, USB_ThreadHandle;
+
 unsigned char _5ms;
 unsigned char SysTime;
 USBD_HandleTypeDef USBD_Device;
@@ -59,18 +61,23 @@ void SysTimInit(void)
 //	USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);
 }
 
-void TimerLoop(void)
+void TimerLoop(void const *argument)
 {
 	static unsigned long testAD = 0;
 	static unsigned int Cnt500ms = 100;
 	static unsigned char LedFlag  = 1;
-
-	if(USB_Receive_count > 0)
+	(void) argument;
+	
+	for (;;)
 	{
-//							USB_Receive_Buf[USB_Receive_count] = USB_Receive_count;
-			USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Receive_Buf, USB_Receive_count);
-			USB_Receive_count = 0;
+		if(USB_Receive_count > 0)
+		{
+	//							USB_Receive_Buf[USB_Receive_count] = USB_Receive_count;
+				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Receive_Buf, USB_Receive_count);
+				USB_Receive_count = 0;
+		}
 	}
+
 	SysTime = 0;
 	if(_5ms)
 	{

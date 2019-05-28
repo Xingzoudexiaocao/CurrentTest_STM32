@@ -338,7 +338,7 @@
               <MiscControls>--C99 --locale=english</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xG</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/STM32F1xx_HAL_Driver/Inc;..\Drivers\BSP\STM32F1xx_Nucleo;..\Drivers\BSP\Adafruit_Shield;..\Drivers\BSP\Components\Common;../Src/FATFS;..\GUI;..\GUI\lvgl;..\GUI\lv_examples;..\GUI\lv_examples\lv_tests\lv_test_theme;..\GUI\lv_examples\lv_tests\lv_test_objx\lv_test_btn;..\GUI\lv_examples\lv_tests\lv_test_objx\lv_test_gauge;..\APP;..\Middlewares\ST\STM32_USB_Device_Library\Core\Inc;..\Middlewares\ST\STM32_USB_Device_Library\Class\HID\Inc;..\Middlewares\ST\STM32_USB_Device_Library\Class\CustomHID\Inc</IncludePath>
+              <IncludePath>../Inc;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/STM32F1xx_HAL_Driver/Inc;..\Drivers\BSP\STM32F1xx_Nucleo;..\Drivers\BSP\Adafruit_Shield;..\Drivers\BSP\Components\Common;../Src/FATFS;..\GUI;..\GUI\lvgl;..\GUI\lv_examples;..\GUI\lv_examples\lv_tests\lv_test_theme;..\GUI\lv_examples\lv_tests\lv_test_objx\lv_test_btn;..\GUI\lv_examples\lv_tests\lv_test_objx\lv_test_gauge;..\APP;..\Middlewares\ST\STM32_USB_Device_Library\Core\Inc;..\Middlewares\ST\STM32_USB_Device_Library\Class\HID\Inc;..\Middlewares\ST\STM32_USB_Device_Library\Class\CustomHID\Inc;..\Middlewares\Third_Party\FreeRTOS\Source\include;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -689,6 +689,11 @@
               <FileName>usbd_customhid_if.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\usbd_customhid_if.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_timebase_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\stm32f1xx_hal_timebase_tim.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1287,6 +1292,56 @@
               <FileName>usbd_customhid.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Middlewares\ST\STM32_USB_Device_Library\Class\CustomHID\Src\usbd_customhid.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>FreeRTOS</GroupName>
+          <Files>
+            <File>
+              <FileName>list.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\FreeRTOS\Source\list.c</FilePath>
+            </File>
+            <File>
+              <FileName>queue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\FreeRTOS\Source\queue.c</FilePath>
+            </File>
+            <File>
+              <FileName>tasks.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\FreeRTOS\Source\tasks.c</FilePath>
+            </File>
+            <File>
+              <FileName>timers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\FreeRTOS\Source\timers.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>FreeRTOS_Portable</GroupName>
+          <Files>
+            <File>
+              <FileName>port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM3\port.c</FilePath>
+            </File>
+            <File>
+              <FileName>heap_4.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>FreeRTOS_CMSIS</GroupName>
+          <Files>
+            <File>
+              <FileName>cmsis_os.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -49,6 +49,7 @@
 #include "usbd_desc.h"
 #include "usbd_customhid.h"
 #include "usbd_customhid_if.h"
+#include "cmsis_os.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

@@ -49,7 +49,6 @@
 #include "lcd.h"
 #include "UI.h"	
 
-
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
   */
@@ -83,7 +82,7 @@ uint8_t aRxBuffer[RXBUFFERSIZE];
 void SystemClock_Config(void);
 void USART_Config(void);
  void Error_Handler(void);
-
+static void LED_Thread(void const *argument);
 /* Private functions ---------------------------------------------------------*/
 
 int main(void)
@@ -138,9 +137,21 @@ int main(void)
 //	LCD_ShowString(50,64,200,24,24, (u8 *)"Hello World");			
 //	UI_Init();
   /* Infinite loop */
+	osThreadDef(THREAD_LED, LED_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(THREAD_USB, TimerLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	
+	LED_ThreadHandle = osThreadCreate(osThread(THREAD_LED), NULL);
+	USB_ThreadHandle = osThreadCreate(osThread(THREAD_USB), NULL);
+	
+//	  /* Set thread 2 in suspend state */
+//  osThreadSuspend(LED_Thread1Handle); 
+  /* Start scheduler */
+  osKernelStart();
+	
   while (1)
   {
-			TimerLoop();
+//			TimerLoop();
+		
 //			if(SysTime)
 //			{
 //				UI_Poll();
@@ -389,6 +400,40 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
   {
     /* Transfer error in reception process */
     Error_Handler();
+  }
+}
+
+// LED 测试线程
+static void LED_Thread(void const *argument)
+{
+  uint32_t count = 0;
+	unsigned char LedFlag  = 1;
+  (void) argument;
+
+  for (;;)
+  {
+//    count = osKernelSysTick() + 5000;
+//    
+//    while (count > osKernelSysTick())
+//    {
+      /* Toggle LED2 every 250ms*/
+      osDelay(500);
+			//Led闪烁控制部分
+			if(LedFlag == 1)
+			{
+				LedFlag = 0;
+				HAL_GPIO_WritePin(GPIOA,GPIO_PIN_2, GPIO_PIN_SET);
+//					HAL_GPIO_WritePin(GPIOA,GPIO_PIN_3, GPIO_PIN_RESET);
+				
+			}
+			else
+			{
+				LedFlag = 1;
+				HAL_GPIO_WritePin(GPIOA,GPIO_PIN_2, GPIO_PIN_RESET);
+//					HAL_GPIO_WritePin(GPIOA,GPIO_PIN_3, GPIO_PIN_SET);
+
+			}
+//    }
   }
 }
 
