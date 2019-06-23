@@ -52,11 +52,11 @@
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
-#define USBD_VID                      0x0483
-#define USBD_PID                      0x5750
+#define USBD_VID                      0x63B2		// 0x0483
+#define USBD_PID                      0xA753		// 0x5750
 #define USBD_LANGID_STRING            0x409
-#define USBD_MANUFACTURER_STRING      "STMicroelectronics"
-#define USBD_PRODUCT_FS_STRING        "Custome HID in FS Mode"
+#define USBD_MANUFACTURER_STRING      "GuangZhou *** company"	// STMicroelectronics
+#define USBD_PRODUCT_FS_STRING        "Precision Current Measurement "	// Custome HID in FS Mode
 #define USBD_CONFIGURATION_FS_STRING  "HID Config"
 #define USBD_INTERFACE_FS_STRING      "HID Interface"
 

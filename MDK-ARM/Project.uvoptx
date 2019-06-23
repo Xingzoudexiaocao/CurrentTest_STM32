@@ -152,18 +152,50 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>250</LineNumber>
+          <LineNumber>135</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134229424</Address>
+          <Address>134219956</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\椤圭洰鐢垫簮\DC Power LCD2.0\Src\usbd_conf.c</Filename>
+          <Filename>D:\椤圭洰鐢垫簮\ISCAN_Project\Src\system.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\STM32F103RB_Nucleo\../Src/usbd_conf.c\250</Expression>
+          <Expression>\\STM32F103RB_Nucleo\../Src/system.c\135</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>39</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134219670</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>D:\椤圭洰鐢垫簮\ISCAN_Project\Src\system.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\STM32F103RB_Nucleo\../Src/system.c\39</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>116</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134219952</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>D:\椤圭洰鐢垫簮\ISCAN_Project\Src\system.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\STM32F103RB_Nucleo\../Src/system.c\116</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>

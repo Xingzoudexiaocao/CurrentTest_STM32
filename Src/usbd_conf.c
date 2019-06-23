@@ -50,8 +50,8 @@
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
-#define USB_DISCONNECT_PORT                 GPIOB
-#define USB_DISCONNECT_PIN                  GPIO_PIN_10
+#define USB_DISCONNECT_PORT                 GPIOC
+#define USB_DISCONNECT_PIN                  GPIO_PIN_8
 
 /* Private macro ------------------------------------------------------------- */
 /* Private variables --------------------------------------------------------- */
@@ -84,7 +84,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef * hpcd)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* Enable the USB disconnect GPIO clock */
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /* USB_DISCONNECT used as USB pull-up */
   GPIO_InitStruct.Pin = USB_DISCONNECT_PIN;
@@ -486,12 +486,12 @@ void HAL_PCDEx_SetConnectionState(PCD_HandleTypeDef * hpcd, uint8_t state)
   if (state == 0)		// 使用USB pull-up,将!=改为==
   {
     /* Enabling DP Pull-Down bit to Connect internal pull-up on USB DP line */
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(USB_DISCONNECT_PORT, USB_DISCONNECT_PIN, GPIO_PIN_RESET);
   }
   else
   {
     /* Disable DP Pull-Down bit */
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(USB_DISCONNECT_PORT, USB_DISCONNECT_PIN, GPIO_PIN_SET);
   }
 }
 

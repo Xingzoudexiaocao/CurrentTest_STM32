@@ -204,7 +204,7 @@ void delay_us(u32 nus)
 // 	SysTick->VAL =0X00;      					 //Çå¿Õ¼ÆÊýÆ÷	 
 	
 	  /* Compute number of CPU cycles to wait for */
-  __IO uint32_t waitLoopIndex = (nus * (SystemCoreClock / 1000000U));
+  __IO uint32_t waitLoopIndex = (nus * (SystemCoreClock / 2000000U / 4U));
 
   while(waitLoopIndex != 0U)
   {

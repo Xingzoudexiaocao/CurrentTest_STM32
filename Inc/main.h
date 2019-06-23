@@ -58,44 +58,81 @@
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-/* User can use this section to tailor USARTx/UARTx instance used and associated
-   resources */
+/* ## Definition of ADC related resources ################################### */
+/* Definition of ADCx clock resources */
+#define ADCx                            ADC1
+#define ADCx_CLK_ENABLE()               __HAL_RCC_ADC1_CLK_ENABLE()
+#define ADCx_FORCE_RESET()              __HAL_RCC_ADC1_FORCE_RESET()
+#define ADCx_RELEASE_RESET()            __HAL_RCC_ADC1_RELEASE_RESET()
+/* Definition of ADCx channels */
+#define ADCx_CHANNELa                   ADC_CHANNEL_0
+/* Definition of ADCx channels pins */
+#define ADCx_CHANNELa_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
+#define ADCx_CHANNELa_GPIO_PORT         GPIOA
+#define ADCx_CHANNELa_PIN               GPIO_PIN_0
+/* Definition of ADCx DMA resources */
+#define ADCx_DMA_CLK_ENABLE()           __HAL_RCC_DMA1_CLK_ENABLE()
+#define ADCx_DMA                        DMA1_Channel1
+#define ADCx_DMA_IRQn                   DMA1_Channel1_IRQn
+#define ADCx_DMA_IRQHandler             DMA1_Channel1_IRQHandler
+/* Definition of ADCx NVIC resources */
+#define ADCx_IRQn                       ADC1_2_IRQn
+#define ADCx_IRQHandler                 ADC1_2_IRQHandler
+
+/* Definition for SPIx clock resources */
+#define SPIx                             SPI1
+#define SPIx_CLK_ENABLE()                __HAL_RCC_SPI1_CLK_ENABLE()
+#define DMAx_CLK_ENABLE()                __HAL_RCC_DMA1_CLK_ENABLE()
+#define SPIx_SCK_GPIO_CLK_ENABLE()       __HAL_RCC_GPIOA_CLK_ENABLE()
+#define SPIx_MISO_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOA_CLK_ENABLE()
+#define SPIx_MOSI_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOA_CLK_ENABLE()
+/* Definition for SPIx Pins */
+#define SPIx_SCK_PIN                     GPIO_PIN_5
+#define SPIx_SCK_GPIO_PORT               GPIOA
+#define SPIx_MISO_PIN                    GPIO_PIN_6
+#define SPIx_MISO_GPIO_PORT              GPIOA
+#define SPIx_MOSI_PIN                    GPIO_PIN_7
+#define SPIx_MOSI_GPIO_PORT              GPIOA
+/* Definition for SPIx's DMA */
+#define SPIx_TX_DMA_CHANNEL              DMA1_Channel3
+#define SPIx_RX_DMA_CHANNEL              DMA1_Channel2
+/* Definition for SPIx's NVIC */
+#define SPIx_DMA_TX_IRQn                 DMA1_Channel3_IRQn
+#define SPIx_DMA_RX_IRQn                 DMA1_Channel2_IRQn
+#define SPIx_DMA_TX_IRQHandler           DMA1_Channel3_IRQHandler
+#define SPIx_DMA_RX_IRQHandler           DMA1_Channel2_IRQHandler
+/* Definition for SPIx's NVIC */
+#define SPIx_IRQn                        SPI1_IRQn
+#define SPIx_IRQHandler                  SPI1_IRQHandler
+
+/* User can use this section to tailor USARTx/UARTx instance used and associated resources */
 /* Definition for USARTx clock resources */
 #define USARTx                           USART1
 #define USARTx_CLK_ENABLE()              __HAL_RCC_USART1_CLK_ENABLE();
 #define DMAx_CLK_ENABLE()                __HAL_RCC_DMA1_CLK_ENABLE()
 #define USARTx_RX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOA_CLK_ENABLE()
 #define USARTx_TX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOA_CLK_ENABLE()
-
 #define USARTx_FORCE_RESET()             __HAL_RCC_USART1_FORCE_RESET()
 #define USARTx_RELEASE_RESET()           __HAL_RCC_USART1_RELEASE_RESET()
-
 /* Definition for USARTx Pins */
 #define USARTx_TX_PIN                    GPIO_PIN_9
 #define USARTx_TX_GPIO_PORT              GPIOA
 #define USARTx_RX_PIN                    GPIO_PIN_10
 #define USARTx_RX_GPIO_PORT              GPIOA
-
 /* Definition for USARTx's DMA */
-
 #define USARTx_TX_DMA_CHANNEL             DMA1_Channel4
 #define USARTx_RX_DMA_CHANNEL             DMA1_Channel5
-
-
-
 /* Definition for USARTx's NVIC */
 #define USARTx_DMA_TX_IRQn                DMA1_Channel4_IRQn
 #define USARTx_DMA_RX_IRQn                DMA1_Channel5_IRQn
 #define USARTx_DMA_TX_IRQHandler          DMA1_Channel4_IRQHandler
 #define USARTx_DMA_RX_IRQHandler          DMA1_Channel5_IRQHandler
-
 /* Definition for USARTx's NVIC */
 #define USARTx_IRQn                      USART1_IRQn
 #define USARTx_IRQHandler                USART1_IRQHandler
 
 /* Size of Trasmission buffer */
 #define TXBUFFERSIZE                      (COUNTOF(aTxBuffer) - 1)
-
 /* Size of Reception buffer */
 #define RXBUFFERSIZE                      10
 

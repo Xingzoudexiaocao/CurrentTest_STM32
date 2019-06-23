@@ -118,14 +118,15 @@ int main(void)
   USBD_Start(&USBD_Device);
 	
 		SysTimInit();
-		USART_Config();
+//		USART_Config();
 		
 //		LED_Init();
 //		KeyBoard_Drv_Init();
 //	
 //		FlashInit();
 //		SceneHomeInit();
-		AD_Init();
+//		AD_Init();
+	AD_SPI_DMA_INIT();
 //	Init_ADS1259();
 
 //  /* Output a message on Hyperterminal using printf function */
@@ -138,10 +139,12 @@ int main(void)
 //	UI_Init();
   /* Infinite loop */
 	osThreadDef(THREAD_LED, LED_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	osThreadDef(THREAD_USB, TimerLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	
 	LED_ThreadHandle = osThreadCreate(osThread(THREAD_LED), NULL);
+	osThreadDef(THREAD_USB, TimerLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	USB_ThreadHandle = osThreadCreate(osThread(THREAD_USB), NULL);
+	osThreadDef(THREAD_AD, ADLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	AD_ThreadHandle = osThreadCreate(osThread(THREAD_AD), NULL);
+
 	
 //	  /* Set thread 2 in suspend state */
 //  osThreadSuspend(LED_Thread1Handle); 
@@ -422,15 +425,15 @@ static void LED_Thread(void const *argument)
 			if(LedFlag == 1)
 			{
 				LedFlag = 0;
-				HAL_GPIO_WritePin(GPIOA,GPIO_PIN_2, GPIO_PIN_SET);
-//					HAL_GPIO_WritePin(GPIOA,GPIO_PIN_3, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
+//					HAL_GPIO_WritePin(LED_1_PORT,LED_2_PIN, GPIO_PIN_RESET);
 				
 			}
 			else
 			{
 				LedFlag = 1;
-				HAL_GPIO_WritePin(GPIOA,GPIO_PIN_2, GPIO_PIN_RESET);
-//					HAL_GPIO_WritePin(GPIOA,GPIO_PIN_3, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
+//					HAL_GPIO_WritePin(LED_1_PORT,LED_2_PIN, GPIO_PIN_SET);
 
 			}
 //    }
