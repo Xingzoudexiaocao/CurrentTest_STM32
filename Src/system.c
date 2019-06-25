@@ -204,27 +204,35 @@ void SetCurrentLevel(uint8_t lev)
 			case 1:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_1_PIN, GPIO_PIN_SET); 	// 先开1
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);	// 后关2
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x11
+				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
 			break;
 			case 2:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_SET); 	// 先开2
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_RESET);	// 后关3
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x10
+				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
 			break;
 			case 3:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_SET); 	// 先开3
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_4_PIN, GPIO_PIN_RESET);	// 后关4
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x01
+				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
 			break;
 			case 4:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_4_PIN, GPIO_PIN_SET); 		// 先开4
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_1_PIN, GPIO_PIN_RESET);	// 后关 1，2，3
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x00
+				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
 			break;
 			default: break;
 		}
-		if(lev == 1 || lev == 3)
-			HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
-		else
-			HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
+//		if(lev == 1 || lev == 3)
+//			HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
+//		else
+//			HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
 }
 
 void TimerLoop(void const *argument)

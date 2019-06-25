@@ -425,15 +425,15 @@ static void LED_Thread(void const *argument)
 			if(LedFlag == 1)
 			{
 				LedFlag = 0;
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
-//					HAL_GPIO_WritePin(LED_1_PORT,LED_2_PIN, GPIO_PIN_RESET);
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
+////					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);
 				
 			}
 			else
 			{
 				LedFlag = 1;
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
-//					HAL_GPIO_WritePin(LED_1_PORT,LED_2_PIN, GPIO_PIN_SET);
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
+////					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
 
 			}
 //    }

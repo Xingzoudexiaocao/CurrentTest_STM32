@@ -357,10 +357,13 @@ void isChangeLevel(unsigned long adValue)
 			if(level == 4)
 			{
 				// 发送超量程数据，电流过大
+							// 发送每次的数据
 				memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
-				USB_Send_Buf[0] = 0xaa; USB_Send_Buf[1] = 0xbb; USB_Send_Buf[2] = 0xcc; USB_Send_Buf[3] = 0xdd;
-				USB_Send_Buf[4] = 0x02; USB_Send_Buf[5] = 0x02;			// 0x0101表示电流过大
+				memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
+				USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;
+				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
 				USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD; USB_Send_Buf[27] = level;
+				USB_Send_Buf[25] = 0x02; USB_Send_Buf[26] = 0x02;			// 0x0202表示电流过大
 			}
 //			level++;
 //			if(level >= 4)
@@ -412,20 +415,16 @@ void isChangeLevel(unsigned long adValue)
 			if(level <= 1)
 				level = 1;
 			SetCurrentLevel(level);	// 设置默认档位
-//			// 发送超量程数据，电流过小
-//			memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
-//			USB_Send_Buf[0] = 0xaa; USB_Send_Buf[1] = 0xbb; USB_Send_Buf[2] = 0xcc; USB_Send_Buf[3] = 0xdd;
-//			USB_Send_Buf[4] = 0x01; USB_Send_Buf[5] = 0x01;			// 0x0101表示电流过小
-//			USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD;  USB_Send_Buf[27] = level;
 		}
 		if(level == 1)
 		{
-						// 发送每次的数据
+			// 发送每次的数据
 			memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
 			memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
 			USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;
 			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
 		  USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD; USB_Send_Buf[27] = level;
+			USB_Send_Buf[25] = 0x01; USB_Send_Buf[26] = 0x01;			// 0x0101表示电流过小
 		}
 	}
 }
@@ -442,7 +441,7 @@ void ADLoop(void const *argument)
 			
 		  unsigned long	testAD = ADS1259_Read();
 			if(testAD >= 0xF0000000)
-				testAD = 0;		// 小于0的偏移数据，默认为0
+				testAD = 0x9B;		// 小于0的偏移数据，默认为0 + 0x9B
 			if(testAD >= 0x80000000)
 			{
 				if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
