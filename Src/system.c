@@ -171,6 +171,8 @@ void SysTimInit(void)
 	/* Reset PIN to switch off the LED */
 	SetCurrentLevel(level);	// 设置默认档位
 	memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));	// 设置发送数据为0
+	USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;		// 初始化头码
+	USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD;		// 初始化尾码
 
 	// 初始化内部AD
 	/* Configure the ADC peripheral */
@@ -229,6 +231,7 @@ void SetCurrentLevel(uint8_t lev)
 			break;
 			default: break;
 		}
+		
 //		if(lev == 1 || lev == 3)
 //			HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
 //		else
@@ -241,6 +244,7 @@ void TimerLoop(void const *argument)
 	unsigned char lastLevel = 4;
 	unsigned char cnt = 0;
 	(void) argument;
+	osEvent event;
 	
 	for (;;)
 	{
@@ -269,8 +273,13 @@ void TimerLoop(void const *argument)
 						USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
 		//			USB_Send_Buf[14] = wTemperature_DegreeCelsius >> 24; USB_Send_Buf[15] = wTemperature_DegreeCelsius >> 16;
 		//			USB_Send_Buf[16] = wTemperature_DegreeCelsius >> 8; USB_Send_Buf[17] = wTemperature_DegreeCelsius;
-						if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
-							USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
+//						event = osSignalWait( BIT_1 | BIT_2, osWaitForever);
+//						if(event.value.signals == (BIT_1 | BIT_2))
+//						{
+								USB_Send_Buf[27] = level;
+								if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+									USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
+//						}
 				}
 				else
 					lastLevel = level;		// 不发送换档之后的下一个数据

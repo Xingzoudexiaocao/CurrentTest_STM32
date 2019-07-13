@@ -119,33 +119,24 @@ unsigned long ADS1259_Read(void)
 	u8 recBuf[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 //	char count = 0;
 	unsigned long result = 0;
+//	for (;;)
+//	{
+//		if(!AD_DRY_R)
+//			break;
+//	}
 	while(AD_DRY_R);
 	
   HAL_StatusTypeDef recState =	HAL_SPI_Receive(&SpiHandle, (uint8_t*)recBuf, 4, 50);	// 接收4个数据
 	if(recState != HAL_OK)
 		return  0x80000000U + recState;		// 接收数据错误，返回错误代码
 	
-//	if(recBuf[0] == 0xFF)
-//	{
-//				if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
-//				{
-//						memset(USB_Send_Buf, 0x99, sizeof(USB_Send_Buf));
-//						memcpy(USB_Send_Buf + 4, recBuf, 4);
-//						memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
-//						USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);
-//				}
-//	}
-//	else
-//	{
-//					// 发送每次的数据
-//			memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
-//			memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
-//			USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;
-//			USB_Send_Buf[4] = recBuf[3]; USB_Send_Buf[5] = recBuf[2]; USB_Send_Buf[6] = recBuf[1]; USB_Send_Buf[7] = recBuf[0];
-//			USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD; USB_Send_Buf[27] = level;
-//	}
 	result = (unsigned long)recBuf[0] << 24 | (unsigned long)recBuf[1] << 16 | (unsigned long)recBuf[2] << 8 | (unsigned long)recBuf[3]; 
-	return  result;
+	
+	
+	if(recBuf[3] == ((recBuf[0] + recBuf[1] + recBuf[2] + 0x9B) & 0xFF))
+		return  result;
+	else
+		return 0x80000000U + 5;	// 数据校验和错误
 }
 
 unsigned long AD_Read(void)
@@ -317,6 +308,7 @@ void AD_SPI_DMA_INIT(void)
 	tem[0] = 0x10;
 	HAL_SPI_Transmit_DMA(&SpiHandle, (uint8_t*)tem, 1);	//连续模式下发送要读的数据
 	
+	memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
 }
 /**
   * @brief  TxRx Transfer completed callback.
@@ -357,13 +349,9 @@ void isChangeLevel(unsigned long adValue)
 			if(level == 4)
 			{
 				// 发送超量程数据，电流过大
-							// 发送每次的数据
-				memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
-				memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
-				USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;
 				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-				USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD; USB_Send_Buf[27] = level;
 				USB_Send_Buf[25] = 0x02; USB_Send_Buf[26] = 0x02;			// 0x0202表示电流过大
+//				osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 			}
 //			level++;
 //			if(level >= 4)
@@ -390,20 +378,14 @@ void isChangeLevel(unsigned long adValue)
 //			curSendCnt = 0;		// 清计数
 //			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 //			{
-//					memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
-//					memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
-//					USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;
 //					USB_Send_Buf[4] = 0; USB_Send_Buf[5] = curSendData; USB_Send_Buf[6] = curSendData >> 8; USB_Send_Buf[7] = curSendData >> 16;
-//					USB_Send_Buf[31] = level;
 //					USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);
 //			}
 //		}
 			// 发送每次的数据
-			memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
-			memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
-			USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;
 			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-		  USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD; USB_Send_Buf[27] = level;
+		  USB_Send_Buf[25] = 0x00; USB_Send_Buf[26] = 0x00;			// 0x0000表示电流正常
+//			osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 	}
 	else if(adValue < LEVEL_MIN)
 	{
@@ -419,12 +401,9 @@ void isChangeLevel(unsigned long adValue)
 		if(level == 1)
 		{
 			// 发送每次的数据
-			memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
-			memcpy(USB_Send_Buf + 16, RecData, sizeof(RecData));	// 寄存器的值
-			USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;
 			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-		  USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD; USB_Send_Buf[27] = level;
 			USB_Send_Buf[25] = 0x01; USB_Send_Buf[26] = 0x01;			// 0x0101表示电流过小
+//			osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 		}
 	}
 }
@@ -437,26 +416,29 @@ void ADLoop(void const *argument)
 	for (;;)
 	{
 //			delay_ms(1000);	// 测试延时函数是否可用
-//			osDelay(1000);
+//			osDelay(1);			// 不加延时不能将该线程优先级设为最高
 			
 		  unsigned long	testAD = ADS1259_Read();
 			if(testAD >= 0xF0000000)
 				testAD = 0x9B;		// 小于0的偏移数据，默认为0 + 0x9B
 			if(testAD >= 0x80000000)
 			{
+				uint8_t send_Buf[32];
 				if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 				{
-						memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));
-						USB_Send_Buf[0] = 0xaa; USB_Send_Buf[1] = 0xbb; USB_Send_Buf[2] = 0xcc; USB_Send_Buf[3] = 0xdd;
-						USB_Send_Buf[4] = testAD; USB_Send_Buf[5] = testAD >> 8; USB_Send_Buf[6] = testAD >> 16; USB_Send_Buf[7] = testAD >> 24;
+						memset(send_Buf, 0, sizeof(send_Buf));
+						send_Buf[0] = 0xaa; send_Buf[1] = 0xbb; send_Buf[2] = 0xcc; send_Buf[3] = 0xdd;
+						send_Buf[4] = testAD; send_Buf[5] = testAD >> 8; send_Buf[6] = testAD >> 16; send_Buf[7] = testAD >> 24;
 						// 0xFF**表示SIP获取AD出错,或者偏移超过最小值
-						USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD; USB_Send_Buf[27] = level;
-						USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);
+						send_Buf[28] = 0x59; send_Buf[29] = 0x3E; send_Buf[30] = 0xBD; send_Buf[27] = level;
+						USBD_CUSTOM_HID_SendReport(&USBD_Device, send_Buf, 32);
 				}
 			}
 			else
+			{
 				isChangeLevel(testAD);	// 调用换档方法
-		
+				
+			}
 //			while(!AD_DRY_R);		// 等待下一组数据OK
 				
 	}

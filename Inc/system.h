@@ -3,6 +3,10 @@
 
 #include "main.h"
 
+#define BIT_0	( 1 << 0 )
+#define BIT_1	( 1 << 1 )
+#define BIT_2	( 1 << 2 )
+
 #define VDD_APPLI                      ((uint32_t) 3000)   /* Value of analog voltage supply Vdda (unit: mV) */
 #define RANGE_12BITS                   ((uint32_t) 4095)   /* Max value with a full range of 12 bits */
 #define ADCCONVERTEDVALUES_BUFFER_SIZE ((uint32_t)    3)   /* Size of array containing ADC converted values: set to ADC sequencer number of ranks converted, to have a rank in each address */
