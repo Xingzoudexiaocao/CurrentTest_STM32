@@ -50,7 +50,7 @@ static void ADC_Config(void)
   
   AdcHandle.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
   AdcHandle.Init.ScanConvMode          = ADC_SCAN_ENABLE;               /* Sequencer disabled (ADC conversion on only 1 channel: channel set on rank 1) */
-  AdcHandle.Init.ContinuousConvMode    = DISABLE;                       /* Continuous mode disabled to have only 1 rank converted at each conversion trig, and because discontinuous mode is enabled */
+  AdcHandle.Init.ContinuousConvMode    = DISABLE;       	//                /* Continuous mode disabled to have only 1 rank converted at each conversion trig, and because discontinuous mode is enabled */
   AdcHandle.Init.NbrOfConversion       = 3;                             /* Sequencer of regular group will convert the 3 first ranks: rank1, rank2, rank3 */
   AdcHandle.Init.DiscontinuousConvMode = ENABLE;                        /* Sequencer of regular group will convert the sequence in several sub-divided sequences */
   AdcHandle.Init.NbrOfDiscConversion   = 1;                             /* Sequencer of regular group will convert ranks one by one, at each conversion trig */
@@ -71,7 +71,7 @@ static void ADC_Config(void)
   /*       min/typ/max values.                                                */
   sConfig.Channel      = ADCx_CHANNELa;
   sConfig.Rank         = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_71CYCLES_5;
   if (HAL_ADC_ConfigChannel(&AdcHandle, &sConfig) != HAL_OK)
   {
     /* Channel Configuration Error */
@@ -147,6 +147,13 @@ void SysTimInit(void)
 // 	SysTick_CounterCmd(SysTick_Counter_Enable);	//使能计数器
 // 	SysTick_ITConfig(ENABLE);					//使能SysTick中断
 
+	// 配置PA1为测试口
+	gpioinitstruct.Pin    = GPIO_PIN_1;
+  gpioinitstruct.Mode   = GPIO_MODE_OUTPUT_PP;
+  gpioinitstruct.Pull   = GPIO_NOPULL;
+  gpioinitstruct.Speed  = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOA, &gpioinitstruct);
+	
 	/* Configure PC.6 as LED function IO */
   gpioinitstruct.Pin    = LED_1_PIN;
   gpioinitstruct.Mode   = GPIO_MODE_OUTPUT_PP;
@@ -240,9 +247,9 @@ void SetCurrentLevel(uint8_t lev)
 
 void TimerLoop(void const *argument)
 {
-	uint16_t lastADValue = 0;
-	unsigned char lastLevel = 4;
-	unsigned char cnt = 0;
+	static uint16_t lastADValue = 0;
+	static unsigned char lastLevel = 4;
+	static unsigned char cnt = 0;
 	(void) argument;
 	osEvent event;
 	
@@ -255,24 +262,29 @@ void TimerLoop(void const *argument)
 //				USB_Receive_count = 0;
 //		}
 		osDelay(1);	// 延时10ms
+//		HAL_ADCEx_Calibration_Start(&AdcHandle);
 		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
+//		/* Wait for conversion completion before conditional check hereafter */
+//    HAL_ADC_PollForConversion(&AdcHandle, 1);
+		
 		lastADValue = aADCxConvertedValues[0];
 //		uint16_t tmp = aADCxConvertedValues[0];
 //		lastADValue += tmp;
 //		lastADValue /= 2;
 //		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
 		cnt++;
-		if(cnt >= 10)
+		if(cnt >= 1)
 		{
 				cnt = 0;		// 清计数
 				if(lastLevel == level)
 				{
+//					uint32_t wTemperature_DegreeCelsius = HAL_ADC_GetValue(&AdcHandle);
 						// 赋值内部AD测量值
 						USB_Send_Buf[8] = lastADValue >> 8; USB_Send_Buf[9] = lastADValue;
 						USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
 						USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
-		//			USB_Send_Buf[14] = wTemperature_DegreeCelsius >> 24; USB_Send_Buf[15] = wTemperature_DegreeCelsius >> 16;
-		//			USB_Send_Buf[16] = wTemperature_DegreeCelsius >> 8; USB_Send_Buf[17] = wTemperature_DegreeCelsius;
+//					USB_Send_Buf[14] = wTemperature_DegreeCelsius >> 24; USB_Send_Buf[15] = wTemperature_DegreeCelsius >> 16;
+//					USB_Send_Buf[16] = wTemperature_DegreeCelsius >> 8; USB_Send_Buf[17] = wTemperature_DegreeCelsius;
 //						event = osSignalWait( BIT_1 | BIT_2, osWaitForever);
 //						if(event.value.signals == (BIT_1 | BIT_2))
 //						{
@@ -307,12 +319,12 @@ void TimerLoop(void const *argument)
 						else if(USB_Receive_Buf[4] == 7)
 						{
 							HAL_ADC_Stop(&AdcHandle);
-							/* Run the ADC calibration */  
-							if (HAL_ADCEx_Calibration_Start(&AdcHandle) != HAL_OK)
-							{
-								/* Calibration Error */
-								Error_Handler();
-							}
+//							/* Run the ADC calibration */  
+//							if (HAL_ADCEx_Calibration_Start(&AdcHandle) != HAL_OK)
+//							{
+//								/* Calibration Error */
+//								Error_Handler();
+//							}
 							HAL_ADC_Start(&AdcHandle);
 						}
 				}

@@ -119,16 +119,16 @@ unsigned long ADS1259_Read(void)
 	u8 recBuf[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 //	char count = 0;
 	unsigned long result = 0;
-//	for (;;)
-//	{
-//		if(!AD_DRY_R)
-//			break;
-//	}
+
+//	if(AD_DRY_R)
+//			return 0x80000000U + 100;
 	while(AD_DRY_R);
 	
   HAL_StatusTypeDef recState =	HAL_SPI_Receive(&SpiHandle, (uint8_t*)recBuf, 4, 50);	// 接收4个数据
 	if(recState != HAL_OK)
 		return  0x80000000U + recState;		// 接收数据错误，返回错误代码
+	
+//	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);		// PA1测试
 	
 	result = (unsigned long)recBuf[0] << 24 | (unsigned long)recBuf[1] << 16 | (unsigned long)recBuf[2] << 8 | (unsigned long)recBuf[3]; 
 	
@@ -342,6 +342,7 @@ void isChangeLevel(unsigned long adValue)
 	adValue = adValue >> 8;		// 移除校验位
 	if(adValue > LEVEL_MAX)
 	{
+		cntLevMin = 0;
 		cntLevMax ++;
 		if(cntLevMax >= 1)			// 出现一次，直接升档 CNT_TOTAL
 		{
@@ -385,12 +386,16 @@ void isChangeLevel(unsigned long adValue)
 			// 发送每次的数据
 			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
 		  USB_Send_Buf[25] = 0x00; USB_Send_Buf[26] = 0x00;			// 0x0000表示电流正常
+//			USB_Send_Buf[27] = level;
+//			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+//				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
 //			osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 	}
 	else if(adValue < LEVEL_MIN)
 	{
+		cntLevMax = 0;
 		cntLevMin ++;
-		if(cntLevMin >= CNT_TOTAL)
+		if(cntLevMin >= 5)	// 出现一次，直接降档 CNT_TOTAL
 		{
 			cntLevMin = 0;
 			level--;
@@ -411,17 +416,25 @@ void isChangeLevel(unsigned long adValue)
 void ADLoop(void const *argument)
 {
 //	unsigned long test = 0;
+	static unsigned char lastLevel = 4;
 	(void) argument;
 	
 	for (;;)
 	{
 //			delay_ms(1000);	// 测试延时函数是否可用
-//			osDelay(1);			// 不加延时不能将该线程优先级设为最高
+//			osDelay(0);			// 不加延时不能将该线程优先级设为最高
 			
 		  unsigned long	testAD = ADS1259_Read();
+		
+//			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);		// PA1测试
+		
 			if(testAD >= 0xF0000000)
 				testAD = 0x9B;		// 小于0的偏移数据，默认为0 + 0x9B
-			if(testAD >= 0x80000000)
+			
+			if(testAD == 0x80000000U + 100)
+			{
+			}
+			else if(testAD >= 0x80000000)
 			{
 				uint8_t send_Buf[32];
 				if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
@@ -438,8 +451,57 @@ void ADLoop(void const *argument)
 			{
 				isChangeLevel(testAD);	// 调用换档方法
 				
-			}
-//			while(!AD_DRY_R);		// 等待下一组数据OK
+//				if(lastLevel == level)
+//				{
+////						USB_Send_Buf[8] = lastADValue >> 8; USB_Send_Buf[9] = lastADValue;
+////						USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
+////						USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
+//								USB_Send_Buf[27] = level;
+//								if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+//									USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
+//				}
+//				else
+//					lastLevel = level;		// 不发送换档之后的下一个数据
 				
+				
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);		// PA1测试
+			}
+			
+//		// 处理USB指令
+//		if(USB_Receive_count > 0)
+//		{
+//				if(USB_Receive_Buf[0] == 0xa5 && USB_Receive_Buf[1] == 0xb7 
+//					&& USB_Receive_Buf[2] == 0xa5 && USB_Receive_Buf[3] == 0xb7)
+//				{
+//						if(USB_Receive_Buf[4] <= 4)
+//						{
+//							level = USB_Receive_Buf[4];
+//							HAL_GPIO_WritePin(LELVE_PORT,LELVE_1_PIN, GPIO_PIN_RESET);	// 关 1，2，3，4
+//							HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);
+//							HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_RESET);
+//							HAL_GPIO_WritePin(LELVE_PORT,LELVE_4_PIN, GPIO_PIN_RESET);
+//							SetCurrentLevel(level);				// 再开对应档位
+//						}
+//						else if(USB_Receive_Buf[4] == 5 || USB_Receive_Buf[4] == 6)
+//						{
+//								uint8_t tem = 0x13 + USB_Receive_Buf[4];
+//								HAL_SPI_Transmit_DMA(&SpiHandle, &tem, 1);	// 0x18 偏移校正， 0x19 增益校正
+//						}
+//						else if(USB_Receive_Buf[4] == 7)
+//						{
+//							HAL_ADC_Stop(&AdcHandle);
+////							/* Run the ADC calibration */  
+////							if (HAL_ADCEx_Calibration_Start(&AdcHandle) != HAL_OK)
+////							{
+////								/* Calibration Error */
+////								Error_Handler();
+////							}
+//							HAL_ADC_Start(&AdcHandle);
+//						}
+//				}
+//				USB_Receive_count = 0;
+//		}
+//			while(!AD_DRY_R);		// 等待下一组数据OK
+//			osDelay(0);			// 不加延时不能将该线程优先级设为最高	
 	}
 }

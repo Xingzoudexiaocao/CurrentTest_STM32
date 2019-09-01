@@ -150,9 +150,11 @@ int main(void)
 //  osThreadSuspend(LED_Thread1Handle); 
   /* Start scheduler */
   osKernelStart();
-	
+//	void const *argument;
+		
   while (1)
   {
+//		ADLoop(argument);
 //			TimerLoop();
 		
 //			if(SysTime)
