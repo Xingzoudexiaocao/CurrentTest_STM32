@@ -384,7 +384,7 @@ void TimerLoop(void const *argument)
 //					lastLevel = level;		// 不发送换档之后的下一个数据
 //		}
 		
-		
+		 
 		// 处理USB指令
 		timeOutCnt++;
 		if(USB_Receive_count > 0)
