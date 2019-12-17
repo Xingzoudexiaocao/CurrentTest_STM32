@@ -71,6 +71,16 @@
 #define LEVEL_MIN 	0x010000			// 换档最小电压 19.53mv
 #define CNT_TOTAL		10  	// 连续出现n次超量程数据就换档
 
+#define YMODEM_SOH (0x01)
+#define YMODEM_STX (0x02)
+#define YMODEM_EOT (0x04)
+#define YMODEM_ACK (0x06)
+#define YMODEM_NAK (0x15)
+#define YMODEM_TIMEOUT (0x7B)
+
+//#define YMODEM_CAN (0x18)
+//#define YMODEM_C (0x43)
+
 typedef enum
 {
   THREAD_LED = 0,

@@ -410,9 +410,10 @@ uint8_t USBD_CUSTOM_HID_SendReport     (USBD_HandleTypeDef  *pdev,
                         CUSTOM_HID_EPIN_ADDR,                                      
                         report,
                         len);
+			return USBD_OK;
     }
   }
-  return USBD_OK;
+  return USBD_FAIL;
 }
 
 /**
@@ -464,14 +465,11 @@ static uint8_t  USBD_CUSTOM_HID_DataOut (USBD_HandleTypeDef *pdev,
     
 	// 此处为USB接收数据部分，修改
 	USB_Receive_count = USBD_GetRxCount(pdev, epnum);
-	if(USB_Receive_count <= 32)
-		memcpy(USB_Receive_Buf, hhid->Report_buf, USB_Receive_count);
-	else
-	{
+	if(USB_Receive_count > 32)
 		USB_Receive_count = 32;
-		USB_Receive_Buf[0] = 0xff;
-		USB_Receive_Buf[1] = 0xff;
-	}
+		
+	memcpy(&USB_Receive_Buf, &hhid->Report_buf, USB_Receive_count);
+//	memset(&hhid->Report_buf, 0x00, USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
 	
   USBD_LL_PrepareReceive(pdev, CUSTOM_HID_EPOUT_ADDR , hhid->Report_buf, 
                          USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);

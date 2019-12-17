@@ -15,6 +15,8 @@
 #include "ADS1259.h"
 #include "AD_spi.h"
 #include "delay.h"
+#include "UpdataApp.h"
+#include "Flash.h"
 
 /* Variable containing ADC conversions results */
 __IO uint16_t   aADCxConvertedValues[ADCCONVERTEDVALUES_BUFFER_SIZE];
@@ -33,6 +35,52 @@ volatile uint16_t USB_Receive_count = 0;
 unsigned char level = 4;		// 定义测电流档位（1~4）,默认为4档
 unsigned char cntLevMax = 0;		// 测量大于最大电压计数
 unsigned char cntLevMin = 0;		// 测量小于最小电压计数
+
+static const unsigned short crc16tab[256]= {
+ 0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,
+ 0x8108,0x9129,0xa14a,0xb16b,0xc18c,0xd1ad,0xe1ce,0xf1ef,
+ 0x1231,0x0210,0x3273,0x2252,0x52b5,0x4294,0x72f7,0x62d6,
+ 0x9339,0x8318,0xb37b,0xa35a,0xd3bd,0xc39c,0xf3ff,0xe3de,
+ 0x2462,0x3443,0x0420,0x1401,0x64e6,0x74c7,0x44a4,0x5485,
+ 0xa56a,0xb54b,0x8528,0x9509,0xe5ee,0xf5cf,0xc5ac,0xd58d,
+ 0x3653,0x2672,0x1611,0x0630,0x76d7,0x66f6,0x5695,0x46b4,
+ 0xb75b,0xa77a,0x9719,0x8738,0xf7df,0xe7fe,0xd79d,0xc7bc,
+ 0x48c4,0x58e5,0x6886,0x78a7,0x0840,0x1861,0x2802,0x3823,
+ 0xc9cc,0xd9ed,0xe98e,0xf9af,0x8948,0x9969,0xa90a,0xb92b,
+ 0x5af5,0x4ad4,0x7ab7,0x6a96,0x1a71,0x0a50,0x3a33,0x2a12,
+ 0xdbfd,0xcbdc,0xfbbf,0xeb9e,0x9b79,0x8b58,0xbb3b,0xab1a,
+ 0x6ca6,0x7c87,0x4ce4,0x5cc5,0x2c22,0x3c03,0x0c60,0x1c41,
+ 0xedae,0xfd8f,0xcdec,0xddcd,0xad2a,0xbd0b,0x8d68,0x9d49,
+ 0x7e97,0x6eb6,0x5ed5,0x4ef4,0x3e13,0x2e32,0x1e51,0x0e70,
+ 0xff9f,0xefbe,0xdfdd,0xcffc,0xbf1b,0xaf3a,0x9f59,0x8f78,
+ 0x9188,0x81a9,0xb1ca,0xa1eb,0xd10c,0xc12d,0xf14e,0xe16f,
+ 0x1080,0x00a1,0x30c2,0x20e3,0x5004,0x4025,0x7046,0x6067,
+ 0x83b9,0x9398,0xa3fb,0xb3da,0xc33d,0xd31c,0xe37f,0xf35e,
+ 0x02b1,0x1290,0x22f3,0x32d2,0x4235,0x5214,0x6277,0x7256,
+ 0xb5ea,0xa5cb,0x95a8,0x8589,0xf56e,0xe54f,0xd52c,0xc50d,
+ 0x34e2,0x24c3,0x14a0,0x0481,0x7466,0x6447,0x5424,0x4405,
+ 0xa7db,0xb7fa,0x8799,0x97b8,0xe75f,0xf77e,0xc71d,0xd73c,
+ 0x26d3,0x36f2,0x0691,0x16b0,0x6657,0x7676,0x4615,0x5634,
+ 0xd94c,0xc96d,0xf90e,0xe92f,0x99c8,0x89e9,0xb98a,0xa9ab,
+ 0x5844,0x4865,0x7806,0x6827,0x18c0,0x08e1,0x3882,0x28a3,
+ 0xcb7d,0xdb5c,0xeb3f,0xfb1e,0x8bf9,0x9bd8,0xabbb,0xbb9a,
+ 0x4a75,0x5a54,0x6a37,0x7a16,0x0af1,0x1ad0,0x2ab3,0x3a92,
+ 0xfd2e,0xed0f,0xdd6c,0xcd4d,0xbdaa,0xad8b,0x9de8,0x8dc9,
+ 0x7c26,0x6c07,0x5c64,0x4c45,0x3ca2,0x2c83,0x1ce0,0x0cc1,
+ 0xef1f,0xff3e,0xcf5d,0xdf7c,0xaf9b,0xbfba,0x8fd9,0x9ff8,
+ 0x6e17,0x7e36,0x4e55,0x5e74,0x2e93,0x3eb2,0x0ed1,0x1ef0
+};
+
+unsigned short YModemCRC(unsigned char *buf, int len)
+{
+		int counter;
+		unsigned short crc = 0;
+		for( counter = 0; counter < len; counter++)
+				crc = (crc<<8) ^ crc16tab[((crc>>8) ^ (*buf++))&0x00FF];
+		return crc;
+}
+		
+
 static void Error_Handler(void)
 {
   while(1)
@@ -247,11 +295,27 @@ void SetCurrentLevel(uint8_t lev)
 
 void TimerLoop(void const *argument)
 {
+ 	static unsigned char stepIndex = 0;
+	static uint32_t pageIndex = 0;
+	static unsigned char receivePage[1056];
+	static unsigned char receiveOnce[32];
+	static unsigned char upUpdateOK[4] = {0x42, 0x01, 0x01, 0x00};
+	static unsigned char upVersion[4] = {0, 0, 0, 0};
+	static unsigned char upLength[4] = {0, 0, 0, 0};
+
+	static unsigned int crcTmp = 0;
+	static unsigned int crcValue = 0;
+	static unsigned int timeOutCnt = 0;
+	static unsigned int i = 0;
+
 	static uint16_t lastADValue = 0;
 	static unsigned char lastLevel = 4;
 	static unsigned char cnt = 0;
+	static uint32_t count = 0;
+	static unsigned char LedFlag  = 1;
+	
 	(void) argument;
-	osEvent event;
+//	osEvent event;
 	
 	for (;;)
 	{
@@ -261,42 +325,68 @@ void TimerLoop(void const *argument)
 //				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Receive_Buf, USB_Receive_count);
 //				USB_Receive_count = 0;
 //		}
-		osDelay(1);	// 延时10ms
-//		HAL_ADCEx_Calibration_Start(&AdcHandle);
-		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
-//		/* Wait for conversion completion before conditional check hereafter */
-//    HAL_ADC_PollForConversion(&AdcHandle, 1);
+//		osDelay(100);	// 延时10ms
+		delay_ms(10);	// 测试延时函数是否可用
+		count++;
+		if(count >= 100)
+		{
+			count = 0;
+			if(LedFlag == 1)
+			{
+				LedFlag = 0;
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
+//					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);
+				
+			}
+			else
+			{
+				LedFlag = 1;
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
+//				TestWriteFlash();
+//					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
+
+			}
+		}
 		
-		lastADValue = aADCxConvertedValues[0];
+		
+////		HAL_ADCEx_Calibration_Start(&AdcHandle);
+//		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
+////		/* Wait for conversion completion before conditional check hereafter */
+////    HAL_ADC_PollForConversion(&AdcHandle, 1);
+//		
+//		lastADValue = aADCxConvertedValues[0];
 //		uint16_t tmp = aADCxConvertedValues[0];
 //		lastADValue += tmp;
 //		lastADValue /= 2;
-//		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
-		cnt++;
-		if(cnt >= 1)
-		{
-				cnt = 0;		// 清计数
-				if(lastLevel == level)
-				{
-//					uint32_t wTemperature_DegreeCelsius = HAL_ADC_GetValue(&AdcHandle);
-						// 赋值内部AD测量值
-						USB_Send_Buf[8] = lastADValue >> 8; USB_Send_Buf[9] = lastADValue;
-						USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
-						USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
-//					USB_Send_Buf[14] = wTemperature_DegreeCelsius >> 24; USB_Send_Buf[15] = wTemperature_DegreeCelsius >> 16;
-//					USB_Send_Buf[16] = wTemperature_DegreeCelsius >> 8; USB_Send_Buf[17] = wTemperature_DegreeCelsius;
-//						event = osSignalWait( BIT_1 | BIT_2, osWaitForever);
-//						if(event.value.signals == (BIT_1 | BIT_2))
-//						{
-								USB_Send_Buf[27] = level;
-								if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
-									USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
-//						}
-				}
-				else
-					lastLevel = level;		// 不发送换档之后的下一个数据
-		}
+////		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
+//		cnt++;
+//		if(cnt >= 1)
+//		{
+//				cnt = 0;		// 清计数
+//				if(lastLevel == level)
+//				{
+////					uint32_t wTemperature_DegreeCelsius = HAL_ADC_GetValue(&AdcHandle);
+//						// 赋值内部AD测量值
+//						USB_Send_Buf[8] = lastADValue >> 8; USB_Send_Buf[9] = lastADValue;
+//						USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
+//						USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
+////					USB_Send_Buf[14] = wTemperature_DegreeCelsius >> 24; USB_Send_Buf[15] = wTemperature_DegreeCelsius >> 16;
+////					USB_Send_Buf[16] = wTemperature_DegreeCelsius >> 8; USB_Send_Buf[17] = wTemperature_DegreeCelsius;
+////						event = osSignalWait( BIT_1 | BIT_2, osWaitForever);
+////						if(event.value.signals == (BIT_1 | BIT_2))
+////						{
+//								USB_Send_Buf[27] = level;
+//								if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+//									USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
+////						}
+//				}
+//				else
+//					lastLevel = level;		// 不发送换档之后的下一个数据
+//		}
+		
+		
 		// 处理USB指令
+		timeOutCnt++;
 		if(USB_Receive_count > 0)
 		{
 				if(USB_Receive_Buf[0] == 0xa5 && USB_Receive_Buf[1] == 0xb7 
@@ -327,8 +417,113 @@ void TimerLoop(void const *argument)
 //							}
 							HAL_ADC_Start(&AdcHandle);
 						}
+						else if(USB_Receive_Buf[4] == 8)
+						{
+								TestWriteFlash();
+						}
 				}
 				USB_Receive_count = 0;
+				memcpy(receiveOnce, USB_Receive_Buf, 32);
+
+				if(stepIndex == 1)
+				{
+					timeOutCnt = 0;
+					
+						memcpy(receivePage + (unsigned int)(i * 32), receiveOnce, 32);
+//					memcpy(receivePage, receiveOnce, 32);
+//					memset(&receivePage, 0x00, sizeof(receivePage));
+//					receivePage[1055] = 0xFF;
+					
+					i++;
+					if(i >= 33)
+					{
+						i = 0;
+						crcValue = (receivePage[1027] << 8) | receivePage[1028];
+						crcTmp = YModemCRC(receivePage + 3, 1024);
+						if((crcValue == crcTmp)
+							&& (0xFF == (receivePage[1] + receivePage[2])) && (receivePage[0] == YMODEM_STX)
+							&& (pageIndex == (receivePage[1] - 1)))
+						{	// 接收一页成功，写Flash
+							memset(&receiveOnce, YMODEM_ACK, 32);	// Send ACK
+							memcpy(receiveOnce + 4, USB_Receive_Buf, 32 - 4);
+							USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+							
+							MemoryWrite(UPDATA_ADDR + (uint32_t)pageIndex * 1024, receivePage + 3, 1024);
+//							delay_ms(10);	// 测试延时函数是否可用
+							
+							pageIndex++;
+							if(pageIndex >= 250)	// 不允许接收超过250k数据
+							{
+								pageIndex = 0;
+								stepIndex = 0;
+//								memset(&receiveOnce, YMODEM_TIMEOUT, 32);
+//								USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+							}
+							
+						}
+						else
+						{	// 接收不成功，重新接收改页数据
+							memset(&receiveOnce, YMODEM_NAK, 32);	// Send NAK
+							memcpy(receiveOnce + 4, USB_Receive_Buf, 32 - 4);
+							receiveOnce[16] = receivePage[1027]; receiveOnce[17] = receivePage[1028];
+							receiveOnce[18] = crcTmp >> 8; receiveOnce[19] = crcTmp & 0xFF;
+							receiveOnce[20] = receivePage[0]; receiveOnce[21] = receivePage[1];receiveOnce[22] = receivePage[2]; receiveOnce[23] = receivePage[3];
+							USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+
+						}
+					}
+//					else
+//					{
+//						memset(&receiveOnce, YMODEM_ACK, 32);	// Send ACK
+//						memcpy(receiveOnce + 4, USB_Receive_Buf, 32 - 4);
+//						receiveOnce[30] = pageIndex; receiveOnce[31] = i;
+//						USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+//					}
+				}
+				if(receiveOnce[0] == YMODEM_SOH && receiveOnce[1] == 0x00 && receiveOnce[2] == 0xFF)		//  && stepIndex == 0
+				{
+					timeOutCnt = 0;
+					crcValue = (receiveOnce[11] << 8) | receiveOnce[12];
+					if(crcValue == YModemCRC(receiveOnce + 3, 8))
+					{	// 校验正确，进入接收数据环节
+						stepIndex = 1;
+						i = 0;
+						pageIndex = 0;
+						
+						memcpy(upVersion, receiveOnce + 3,   4);
+						memcpy(upLength, receiveOnce + 7, 4);
+						memset(receiveOnce, YMODEM_ACK, 32);	// Send ACK
+//						memcpy(receiveOnce + 4, USB_Receive_Buf + 4, 32-4);
+						USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+					}
+				}
+				if(receiveOnce[0] == YMODEM_EOT && receiveOnce[1] == 0x00 && receiveOnce[2] == 0xFF)
+				{
+					timeOutCnt = 0;
+					stepIndex = 0;		// 接收完成
+					pageIndex = 0;
+					
+					crcValue = (receiveOnce[11] << 8) | receiveOnce[12];
+					if(crcValue == YModemCRC(receiveOnce + 3, 8))
+					{	// 校验正确，进入接收数据环节
+						MemoryWrite(PAGE_ADDR , upUpdateOK, sizeof(upUpdateOK));
+						MemoryWrite(PAGE_ADDR + sizeof(upUpdateOK), upVersion, sizeof(upVersion));
+						MemoryWrite(PAGE_ADDR + sizeof(upUpdateOK) + sizeof(upVersion), upLength, sizeof(upLength));
+					//	memcpy(upVersion, receiveOnce + 3,   4);
+					//	memcpy(upLength, receiveOnce + 7, 4);
+					// 比较upVersion，upLength是否正确，正确则返回ACK
+						memset(&receiveOnce, YMODEM_ACK, 32);	// Send ACK
+						USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+					}
+				}
+		}
+		
+		if(timeOutCnt >= 300 && stepIndex != 0)		//	  
+		{
+			timeOutCnt = 0;
+			stepIndex = 0;
+			memset(&receiveOnce, YMODEM_TIMEOUT, 32);
+			USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
 		}
 	}
 }

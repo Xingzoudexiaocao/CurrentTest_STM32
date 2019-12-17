@@ -43,8 +43,10 @@
 #include "KeyBoard_Drv.h"
 #include "SceneHome.h"
 #include "Flash.h"
+#include "UpdataApp.h"
 #include "ADS1259.h"
 #include "AD_spi.h"
+#include "delay.h"
 
 #include "lcd.h"
 #include "UI.h"	
@@ -87,7 +89,8 @@ static void LED_Thread(void const *argument);
 
 int main(void)
 {
-
+	SCB->VTOR = ((uint32_t)0x8000000) | (0x2000 & (uint32_t)0x1FFFFF80);
+//	__enable_irq();
   /* STM32F103xB HAL library initialization:
        - Configure the Flash prefetch
        - Systick timer is configured by default as source of time base, but user 
@@ -138,24 +141,25 @@ int main(void)
 //	LCD_ShowString(50,64,200,24,24, (u8 *)"Hello World");			
 //	UI_Init();
   /* Infinite loop */
-	osThreadDef(THREAD_LED, LED_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	LED_ThreadHandle = osThreadCreate(osThread(THREAD_LED), NULL);
-	osThreadDef(THREAD_USB, TimerLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	USB_ThreadHandle = osThreadCreate(osThread(THREAD_USB), NULL);
-	osThreadDef(THREAD_AD, ADLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	AD_ThreadHandle = osThreadCreate(osThread(THREAD_AD), NULL);
+//	osThreadDef(THREAD_LED, LED_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+//	LED_ThreadHandle = osThreadCreate(osThread(THREAD_LED), NULL);
+//	osThreadDef(THREAD_USB, TimerLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+//	USB_ThreadHandle = osThreadCreate(osThread(THREAD_USB), NULL);
+//	osThreadDef(THREAD_AD, ADLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+//	AD_ThreadHandle = osThreadCreate(osThread(THREAD_AD), NULL);
 
 	
 //	  /* Set thread 2 in suspend state */
 //  osThreadSuspend(LED_Thread1Handle); 
   /* Start scheduler */
-  osKernelStart();
-//	void const *argument;
+//  osKernelStart();
+	void const *argument;
 		
-  while (1)
-  {
+//  while (1)
+//  {
+//		LED_Thread(argument);
 //		ADLoop(argument);
-//			TimerLoop();
+			TimerLoop(argument);
 		
 //			if(SysTime)
 //			{
@@ -168,7 +172,8 @@ int main(void)
 //			FlashLoop();
 //			SceneHomeLoop();
 //// 			SendLoop();	
-  }
+//  }
+while(1){}
 }
 
 /**
@@ -411,8 +416,9 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 // LED 测试线程
 static void LED_Thread(void const *argument)
 {
-  uint32_t count = 0;
+//  uint32_t count = 0;
 	unsigned char LedFlag  = 1;
+//	unsigned char receiveOnce[32];
   (void) argument;
 
   for (;;)
@@ -423,19 +429,23 @@ static void LED_Thread(void const *argument)
 //    {
       /* Toggle LED2 every 250ms*/
       osDelay(500);
+//		delay_ms(1000);	// 测试延时函数是否可用
+//		memset(&receiveOnce, YMODEM_TIMEOUT, 32);
+//			USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
 			//Led闪烁控制部分
 			if(LedFlag == 1)
 			{
 				LedFlag = 0;
-//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
-////					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
+//					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);
 				
 			}
 			else
 			{
 				LedFlag = 1;
-//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
-////					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
+//				TestWriteFlash();
+//					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
 
 			}
 //    }

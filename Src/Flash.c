@@ -29,11 +29,11 @@ static uc32 	_FC_AddBase =  0x8004000;	//数据的基地址，有400K左右的容量 0x801B80
   #define SECTOR_SIZE           2048    //??
 #endif
 
-//?????????????
+// 备注问题：STM32F103VET6为512k大Flash，一页2k，重复修改Flash区域数据需要先擦除
 void MemoryWrite(u32 startAddress,void *writeData,u32 lenght)
 {
 		uint8_t status = 0;
-		uint8_t index = 0;
+		uint32_t index = 0;
 		uint32_t *date = (uint32_t*)writeData;
 	  //1???FLASH
 		HAL_FLASH_Unlock();
@@ -41,30 +41,31 @@ void MemoryWrite(u32 startAddress,void *writeData,u32 lenght)
     //2???FLASH
     //???FLASH_EraseInitTypeDef
     FLASH_EraseInitTypeDef f;
-    f.TypeErase = FLASH_TYPEERASE_PAGES;
+    f.TypeErase = FLASH_TYPEERASE_PAGES;	
     f.PageAddress = startAddress;
     f.NbPages = 1;
     //??PageError
     uint32_t PageError = 0;
     //??????
-    HAL_FLASHEx_Erase(&f, &PageError);
+		if(startAddress % 2048 == 0)		// 传入2k首地址先擦除该页数据
+			HAL_FLASHEx_Erase(&f, &PageError);
 
 	  for (index = 0; index < lenght/4; index++)
     {
 			  //3??FLASH??
 			HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, startAddress + (4 * index), *(date + index));
 
-      /* Wait for last operation to be completed */
-      status = FLASH_WaitForLastOperation((uint32_t)FLASH_TIMEOUT_VALUE);
+//      /* Wait for last operation to be completed */
+//      status = FLASH_WaitForLastOperation((uint32_t)FLASH_TIMEOUT_VALUE);
 
-      /* If the program operation is completed, disable the PG Bit */
-      CLEAR_BIT(FLASH->CR, FLASH_CR_PG);
+//      /* If the program operation is completed, disable the PG Bit */
+//      CLEAR_BIT(FLASH->CR, FLASH_CR_PG);
 
-      /* In case of error, stop programation procedure */
-      if (status != HAL_OK)
-      {
-        break;
-      }
+//      /* In case of error, stop programation procedure */
+//      if (status != HAL_OK)
+//      {
+//        break;
+//      }
     }
 
     //4???FLASH

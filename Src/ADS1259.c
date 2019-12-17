@@ -449,7 +449,7 @@ void ADLoop(void const *argument)
 			}
 			else
 			{
-				isChangeLevel(testAD);	// 调用换档方法
+//				isChangeLevel(testAD);	// 调用换档方法
 				
 //				if(lastLevel == level)
 //				{
