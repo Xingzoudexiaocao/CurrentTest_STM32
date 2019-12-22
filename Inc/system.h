@@ -76,6 +76,7 @@
 #define YMODEM_EOT (0x04)
 #define YMODEM_ACK (0x06)
 #define YMODEM_NAK (0x15)
+#define YMODEM_VER_LEN (0xA3)
 #define YMODEM_TIMEOUT (0x7B)
 
 //#define YMODEM_CAN (0x18)

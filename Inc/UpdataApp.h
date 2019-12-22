@@ -11,6 +11,7 @@
 #define MAX_ADDR  		(0x08080000)	 //×î´óµØÖ··¶Î§
 
 extern void TestWriteFlash(void);
-
+extern void SendVersionLength(void);
+	
 #endif
 

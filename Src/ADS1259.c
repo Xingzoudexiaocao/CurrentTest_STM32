@@ -449,7 +449,7 @@ void ADLoop(void const *argument)
 			}
 			else
 			{
-//				isChangeLevel(testAD);	// 调用换档方法
+				isChangeLevel(testAD);	// 调用换档方法
 				
 //				if(lastLevel == level)
 //				{
@@ -464,43 +464,9 @@ void ADLoop(void const *argument)
 //					lastLevel = level;		// 不发送换档之后的下一个数据
 				
 				
-				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);		// PA1测试
+//				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);		// PA1测试
 			}
 			
-//		// 处理USB指令
-//		if(USB_Receive_count > 0)
-//		{
-//				if(USB_Receive_Buf[0] == 0xa5 && USB_Receive_Buf[1] == 0xb7 
-//					&& USB_Receive_Buf[2] == 0xa5 && USB_Receive_Buf[3] == 0xb7)
-//				{
-//						if(USB_Receive_Buf[4] <= 4)
-//						{
-//							level = USB_Receive_Buf[4];
-//							HAL_GPIO_WritePin(LELVE_PORT,LELVE_1_PIN, GPIO_PIN_RESET);	// 关 1，2，3，4
-//							HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(LELVE_PORT,LELVE_4_PIN, GPIO_PIN_RESET);
-//							SetCurrentLevel(level);				// 再开对应档位
-//						}
-//						else if(USB_Receive_Buf[4] == 5 || USB_Receive_Buf[4] == 6)
-//						{
-//								uint8_t tem = 0x13 + USB_Receive_Buf[4];
-//								HAL_SPI_Transmit_DMA(&SpiHandle, &tem, 1);	// 0x18 偏移校正， 0x19 增益校正
-//						}
-//						else if(USB_Receive_Buf[4] == 7)
-//						{
-//							HAL_ADC_Stop(&AdcHandle);
-////							/* Run the ADC calibration */  
-////							if (HAL_ADCEx_Calibration_Start(&AdcHandle) != HAL_OK)
-////							{
-////								/* Calibration Error */
-////								Error_Handler();
-////							}
-//							HAL_ADC_Start(&AdcHandle);
-//						}
-//				}
-//				USB_Receive_count = 0;
-//		}
 //			while(!AD_DRY_R);		// 等待下一组数据OK
 //			osDelay(0);			// 不加延时不能将该线程优先级设为最高	
 	}

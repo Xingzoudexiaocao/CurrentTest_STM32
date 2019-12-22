@@ -325,63 +325,27 @@ void TimerLoop(void const *argument)
 //				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Receive_Buf, USB_Receive_count);
 //				USB_Receive_count = 0;
 //		}
-//		osDelay(100);	// 延时10ms
-		delay_ms(10);	// 测试延时函数是否可用
-		count++;
-		if(count >= 100)
-		{
-			count = 0;
-			if(LedFlag == 1)
-			{
-				LedFlag = 0;
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
-//					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);
-				
-			}
-			else
-			{
-				LedFlag = 1;
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
-//				TestWriteFlash();
-//					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
-
-			}
-		}
-		
-		
-////		HAL_ADCEx_Calibration_Start(&AdcHandle);
-//		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
-////		/* Wait for conversion completion before conditional check hereafter */
-////    HAL_ADC_PollForConversion(&AdcHandle, 1);
-//		
-//		lastADValue = aADCxConvertedValues[0];
-//		uint16_t tmp = aADCxConvertedValues[0];
-//		lastADValue += tmp;
-//		lastADValue /= 2;
-////		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
-//		cnt++;
-//		if(cnt >= 1)
+		osDelay(1);	// 延时10ms
+//		delay_ms(10);	// 测试延时函数是否可用
+//		count++;
+//		if(count >= 100)
 //		{
-//				cnt = 0;		// 清计数
-//				if(lastLevel == level)
-//				{
-////					uint32_t wTemperature_DegreeCelsius = HAL_ADC_GetValue(&AdcHandle);
-//						// 赋值内部AD测量值
-//						USB_Send_Buf[8] = lastADValue >> 8; USB_Send_Buf[9] = lastADValue;
-//						USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
-//						USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
-////					USB_Send_Buf[14] = wTemperature_DegreeCelsius >> 24; USB_Send_Buf[15] = wTemperature_DegreeCelsius >> 16;
-////					USB_Send_Buf[16] = wTemperature_DegreeCelsius >> 8; USB_Send_Buf[17] = wTemperature_DegreeCelsius;
-////						event = osSignalWait( BIT_1 | BIT_2, osWaitForever);
-////						if(event.value.signals == (BIT_1 | BIT_2))
-////						{
-//								USB_Send_Buf[27] = level;
-//								if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
-//									USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
-////						}
-//				}
-//				else
-//					lastLevel = level;		// 不发送换档之后的下一个数据
+//			count = 0;
+//			if(LedFlag == 1)
+//			{
+//				LedFlag = 0;
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
+////					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);
+//				
+//			}
+//			else
+//			{
+//				LedFlag = 1;
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
+////				TestWriteFlash();
+////					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
+
+//			}
 //		}
 		
 		 
@@ -389,8 +353,10 @@ void TimerLoop(void const *argument)
 		timeOutCnt++;
 		if(USB_Receive_count > 0)
 		{
+				USB_Receive_count = 0;		// 清接收计数
+			// 处理上位机发送的指令
 				if(USB_Receive_Buf[0] == 0xa5 && USB_Receive_Buf[1] == 0xb7 
-					&& USB_Receive_Buf[2] == 0xa5 && USB_Receive_Buf[3] == 0xb7)
+					&& USB_Receive_Buf[2] == 0xa5 && USB_Receive_Buf[3] == 0xb7 && stepIndex == 0)	// 非升级状态才处理指令
 				{
 						if(USB_Receive_Buf[4] <= 4)
 						{
@@ -419,12 +385,12 @@ void TimerLoop(void const *argument)
 						}
 						else if(USB_Receive_Buf[4] == 8)
 						{
-								TestWriteFlash();
+//								TestWriteFlash();
+								SendVersionLength();
 						}
 				}
-				USB_Receive_count = 0;
+				// 以下代码为AppUpdata代码
 				memcpy(receiveOnce, USB_Receive_Buf, 32);
-
 				if(stepIndex == 1)
 				{
 					timeOutCnt = 0;
@@ -446,7 +412,8 @@ void TimerLoop(void const *argument)
 						{	// 接收一页成功，写Flash
 							memset(&receiveOnce, YMODEM_ACK, 32);	// Send ACK
 							memcpy(receiveOnce + 4, USB_Receive_Buf, 32 - 4);
-							USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+							if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+								USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
 							
 							MemoryWrite(UPDATA_ADDR + (uint32_t)pageIndex * 1024, receivePage + 3, 1024);
 //							delay_ms(10);	// 测试延时函数是否可用
@@ -468,7 +435,8 @@ void TimerLoop(void const *argument)
 							receiveOnce[16] = receivePage[1027]; receiveOnce[17] = receivePage[1028];
 							receiveOnce[18] = crcTmp >> 8; receiveOnce[19] = crcTmp & 0xFF;
 							receiveOnce[20] = receivePage[0]; receiveOnce[21] = receivePage[1];receiveOnce[22] = receivePage[2]; receiveOnce[23] = receivePage[3];
-							USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+							if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+								USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
 
 						}
 					}
@@ -494,7 +462,8 @@ void TimerLoop(void const *argument)
 						memcpy(upLength, receiveOnce + 7, 4);
 						memset(receiveOnce, YMODEM_ACK, 32);	// Send ACK
 //						memcpy(receiveOnce + 4, USB_Receive_Buf + 4, 32-4);
-						USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+						if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+							USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
 					}
 				}
 				if(receiveOnce[0] == YMODEM_EOT && receiveOnce[1] == 0x00 && receiveOnce[2] == 0xFF)
@@ -513,17 +482,54 @@ void TimerLoop(void const *argument)
 					//	memcpy(upLength, receiveOnce + 7, 4);
 					// 比较upVersion，upLength是否正确，正确则返回ACK
 						memset(&receiveOnce, YMODEM_ACK, 32);	// Send ACK
-						USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+						if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+							USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
 					}
 				}
 		}
-		
-		if(timeOutCnt >= 300 && stepIndex != 0)		//	  
+		// AppUpdate超时处理
+		if(timeOutCnt >= 3000 && stepIndex != 0)		//	  
 		{
 			timeOutCnt = 0;
 			stepIndex = 0;
 			memset(&receiveOnce, YMODEM_TIMEOUT, 32);
-			USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+				USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
+		}
+		
+////		HAL_ADCEx_Calibration_Start(&AdcHandle);
+//		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
+////		/* Wait for conversion completion before conditional check hereafter */
+////    HAL_ADC_PollForConversion(&AdcHandle, 1);
+//		
+//		lastADValue = aADCxConvertedValues[0];
+//		uint16_t tmp = aADCxConvertedValues[0];
+//		lastADValue += tmp;
+//		lastADValue /= 2;
+////		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
+		cnt++;
+		if(cnt >= 1 && stepIndex == 0)	// 非升级状态才处理指令
+		{
+				cnt = 0;		// 清计数
+				if(lastLevel == level)
+				{
+//					uint32_t wTemperature_DegreeCelsius = HAL_ADC_GetValue(&AdcHandle);
+						// 赋值内部AD测量值
+						USB_Send_Buf[8] = lastADValue >> 8; USB_Send_Buf[9] = lastADValue;
+						USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
+						USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
+//					USB_Send_Buf[14] = wTemperature_DegreeCelsius >> 24; USB_Send_Buf[15] = wTemperature_DegreeCelsius >> 16;
+//					USB_Send_Buf[16] = wTemperature_DegreeCelsius >> 8; USB_Send_Buf[17] = wTemperature_DegreeCelsius;
+//						event = osSignalWait( BIT_1 | BIT_2, osWaitForever);
+//						if(event.value.signals == (BIT_1 | BIT_2))
+//						{
+								USB_Send_Buf[27] = level;
+								if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+									USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
+//						}
+				}
+				else
+					lastLevel = level;		// 不发送换档之后的下一个数据
 		}
 	}
 }

@@ -141,25 +141,25 @@ int main(void)
 //	LCD_ShowString(50,64,200,24,24, (u8 *)"Hello World");			
 //	UI_Init();
   /* Infinite loop */
-//	osThreadDef(THREAD_LED, LED_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-//	LED_ThreadHandle = osThreadCreate(osThread(THREAD_LED), NULL);
-//	osThreadDef(THREAD_USB, TimerLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-//	USB_ThreadHandle = osThreadCreate(osThread(THREAD_USB), NULL);
-//	osThreadDef(THREAD_AD, ADLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-//	AD_ThreadHandle = osThreadCreate(osThread(THREAD_AD), NULL);
+	osThreadDef(THREAD_LED, LED_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	LED_ThreadHandle = osThreadCreate(osThread(THREAD_LED), NULL);
+	osThreadDef(THREAD_USB, TimerLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	USB_ThreadHandle = osThreadCreate(osThread(THREAD_USB), NULL);
+	osThreadDef(THREAD_AD, ADLoop, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	AD_ThreadHandle = osThreadCreate(osThread(THREAD_AD), NULL);
 
 	
 //	  /* Set thread 2 in suspend state */
 //  osThreadSuspend(LED_Thread1Handle); 
   /* Start scheduler */
-//  osKernelStart();
-	void const *argument;
+  osKernelStart();
+//	void const *argument;
 		
-//  while (1)
-//  {
+  while (1)
+  {
 //		LED_Thread(argument);
 //		ADLoop(argument);
-			TimerLoop(argument);
+//			TimerLoop(argument);
 		
 //			if(SysTime)
 //			{
@@ -172,8 +172,8 @@ int main(void)
 //			FlashLoop();
 //			SceneHomeLoop();
 //// 			SendLoop();	
-//  }
-while(1){}
+  }
+//while(1){}
 }
 
 /**
@@ -436,15 +436,15 @@ static void LED_Thread(void const *argument)
 			if(LedFlag == 1)
 			{
 				LedFlag = 0;
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);		
 //					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);
 				
 			}
 			else
 			{
 				LedFlag = 1;
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
-//				TestWriteFlash();
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);
+////				TestWriteFlash();
 //					HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
 
 			}

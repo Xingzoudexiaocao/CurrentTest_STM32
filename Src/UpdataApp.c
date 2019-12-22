@@ -13,7 +13,7 @@
 #include "system.h"
 #include "UpdataApp.h"
 #include "Flash.h"
-
+// 定义局部变量数组大小超过1024字节，调用menset/memcpy函数是会导致程序奔溃，解决方法：定义为静态static；
 void TestWriteFlash(void)
 {		
 		u16 i = 0;
@@ -54,6 +54,16 @@ void TestWriteFlash(void)
 ////					return;
 //		}
 //	}
+	
+}
+
+void SendVersionLength(void)
+{
+	u8 buf[32];
+	memset(&buf, YMODEM_VER_LEN, 32);	// Send YMODEM_VER_LEN
+	MemoryRead((u8 *)(PAGE_ADDR + 4), sizeof(buf),0,buf + 4);	// 读取版本号和文件长度
+	if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+		USBD_CUSTOM_HID_SendReport(&USBD_Device, buf, 32);	// 发送数据
 	
 }
 
