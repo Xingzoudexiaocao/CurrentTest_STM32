@@ -66,8 +66,8 @@
 #define USBD_SELF_POWERED                     1
 #define USBD_DEBUG_LEVEL                      0
 
-#define USBD_CUSTOMHID_OUTREPORT_BUF_SIZE     32		// 02改为
-#define USBD_CUSTOM_HID_REPORT_DESC_SIZE       34			// 163改为,47
+#define USBD_CUSTOMHID_OUTREPORT_BUF_SIZE     32		// 02改为		64改32
+#define USBD_CUSTOM_HID_REPORT_DESC_SIZE       0x22			// 必需与CUSTOM_HID_REPORT_DESC相等
 
 /* Exported macro ------------------------------------------------------------*/
 /* Memory management macros */

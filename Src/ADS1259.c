@@ -351,7 +351,11 @@ void isChangeLevel(unsigned long adValue)
 			{
 				// 发送超量程数据，电流过大
 				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-				USB_Send_Buf[25] = 0x02; USB_Send_Buf[26] = 0x02;			// 0x0202表示电流过大
+				USB_Send_Buf[25] = 0x02; USB_Send_Buf[26] = 0x02;	USB_Send_Buf[27] = level;		// 0x0202表示电流过大
+//		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
+		sendBuf = adValue << 8;
+		sendBuf |= level;
+		ListAddOne(sendBuf, (unsigned long)aADCxConvertedValues[0]);
 //				osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 			}
 //			level++;
@@ -383,10 +387,14 @@ void isChangeLevel(unsigned long adValue)
 //					USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);
 //			}
 //		}
-			// 发送每次的数据
+////		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
+//		sendBuf = adValue << 8;
+//		sendBuf |= level;
+//		ListAddOne(sendBuf, (unsigned long)aADCxConvertedValues[0]);
+//			// 发送每次的数据
 			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
 		  USB_Send_Buf[25] = 0x00; USB_Send_Buf[26] = 0x00;			// 0x0000表示电流正常
-//			USB_Send_Buf[27] = level;
+			USB_Send_Buf[27] = level;
 //			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 //				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
 //			osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
@@ -407,7 +415,7 @@ void isChangeLevel(unsigned long adValue)
 		{
 			// 发送每次的数据
 			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-			USB_Send_Buf[25] = 0x01; USB_Send_Buf[26] = 0x01;			// 0x0101表示电流过小
+			USB_Send_Buf[25] = 0x01; USB_Send_Buf[26] = 0x01;	USB_Send_Buf[27] = level;		// 0x0101表示电流过小
 //			osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 		}
 	}
@@ -416,7 +424,7 @@ void isChangeLevel(unsigned long adValue)
 void ADLoop(void const *argument)
 {
 //	unsigned long test = 0;
-	static unsigned char lastLevel = 4;
+//	static unsigned char lastLevel = 4;
 	(void) argument;
 	
 	for (;;)
@@ -428,13 +436,14 @@ void ADLoop(void const *argument)
 		
 //			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);		// PA1测试
 		
-			if(testAD >= 0xF0000000)
+			if(testAD >= 0xF0000000 && level == 1)
 				testAD = 0x9B;		// 小于0的偏移数据，默认为0 + 0x9B
 			
-			if(testAD == 0x80000000U + 100)
-			{
-			}
-			else if(testAD >= 0x80000000)
+//			if(testAD == 0x80000000U + 100)
+//			{
+//			}
+//			else 
+			if(testAD >= 0x80000000)
 			{
 				uint8_t send_Buf[32];
 				if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )

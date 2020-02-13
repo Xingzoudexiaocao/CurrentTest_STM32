@@ -90,22 +90,30 @@ typedef enum
 } Thread_TypeDef;
 
 extern osThreadId LED_ThreadHandle, AD_ThreadHandle, USB_ThreadHandle;
+extern __IO uint16_t   aADCxConvertedValues[ADCCONVERTEDVALUES_BUFFER_SIZE];
 
 extern unsigned char _5ms;
 extern unsigned char SysTime;
 extern USBD_HandleTypeDef USBD_Device;
 extern SPI_HandleTypeDef SpiHandle;
 extern ADC_HandleTypeDef    AdcHandle;
-extern uint8_t USB_Receive_Buf[32];
-extern uint8_t USB_Send_Buf[32];
+extern uint8_t USB_Receive_Buf[256];
+extern uint8_t USB_Send_Buf[256];
 extern volatile uint16_t USB_Receive_count; 
 extern unsigned char level;
 extern unsigned char cntLevMax;		// 测量大于最大电压计数
 extern unsigned char cntLevMin;		// 测量小于最小电压计数
 
+extern unsigned long listCurrent[100];
+extern unsigned long listVoltage[100];
+extern unsigned long listIndex;
+extern unsigned char HEADER_CODE[4];
+extern unsigned char TAIL_CODE[4];
+
 extern void SysTimInit(void);
 extern void SetCurrentLevel(uint8_t lev);
 extern void TimerLoop(void const *argument);
+extern void ListAddOne(unsigned long cur, unsigned long vol);
 
 #endif
 

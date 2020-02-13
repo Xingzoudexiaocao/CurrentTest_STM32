@@ -29,12 +29,18 @@ unsigned char SysTime;
 USBD_HandleTypeDef USBD_Device;	/* USB handler declaration */
 SPI_HandleTypeDef SpiHandle;		/* SPI handler declaration */
 ADC_HandleTypeDef    AdcHandle;		/* ADC handler declaration */
-uint8_t USB_Receive_Buf[32];
-uint8_t USB_Send_Buf[32];
+uint8_t USB_Receive_Buf[256];
+uint8_t USB_Send_Buf[256];
 volatile uint16_t USB_Receive_count = 0;
 unsigned char level = 4;		// 定义测电流档位（1~4）,默认为4档
 unsigned char cntLevMax = 0;		// 测量大于最大电压计数
 unsigned char cntLevMin = 0;		// 测量小于最小电压计数
+
+unsigned char HEADER_CODE[4] = {0xA7, 0x59, 0x3E, 0xBD};
+unsigned char TAIL_CODE[4] = {0x59, 0x3E, 0xBD, 0x00};
+unsigned long listCurrent[100];
+unsigned long listVoltage[100];
+unsigned long listIndex = 0;
 
 static const unsigned short crc16tab[256]= {
  0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,
@@ -80,6 +86,42 @@ unsigned short YModemCRC(unsigned char *buf, int len)
 		return crc;
 }
 		
+void ListAddOne(unsigned long cur, unsigned long vol)
+{
+	if(listIndex >= 100)
+		return;
+	listCurrent[listIndex] = cur;
+	listVoltage[listIndex] = vol;
+	listIndex++;
+}
+
+void ListDec(unsigned int num)
+{
+	unsigned int i = 0;
+	if(listIndex < num)
+		return;
+
+//	memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));	// 设置发送数据为0
+//	memcpy(USB_Send_Buf, HEADER_CODE, sizeof(HEADER_CODE));
+	USB_Send_Buf[0] = 0xA7;	USB_Send_Buf[1] = 0x59;
+	USB_Send_Buf[2] = listIndex >> 8;	USB_Send_Buf[3] = listIndex;
+	for(i = 0; i < num; i++)
+	{
+		USB_Send_Buf[4 + i * 6] = listCurrent[i]; USB_Send_Buf[4 + i * 6 + 1] = listCurrent[i] >> 8;
+		USB_Send_Buf[4 + i * 6 + 2] = listCurrent[i] >> 16; USB_Send_Buf[4 + i * 6 + 3] = listCurrent[i] >> 24;
+		USB_Send_Buf[4 + i * 6 + 4] = listVoltage[i]; USB_Send_Buf[4 + i * 6 + 5] = listVoltage[i] >> 8;
+	}
+	for(i = 0; i < 100 - num; i++)
+	{
+		listCurrent[i] = listCurrent[i + 10];
+		listVoltage[i] = listVoltage[i + 10];
+	}
+//	memcpy(listCurrent, listCurrent + num, sizeof(listCurrent) - num);
+//	memcpy(listVoltage, listVoltage + num, sizeof(listVoltage) - num);
+	listIndex -= num;
+	if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+		USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 64);		// 
+}
 
 static void Error_Handler(void)
 {
@@ -308,11 +350,11 @@ void TimerLoop(void const *argument)
 	static unsigned int timeOutCnt = 0;
 	static unsigned int i = 0;
 
-	static uint16_t lastADValue = 0;
-	static unsigned char lastLevel = 4;
+//	static uint16_t lastADValue = 0;
+//	static unsigned char lastLevel = 4;
 	static unsigned char cnt = 0;
-	static uint32_t count = 0;
-	static unsigned char LedFlag  = 1;
+//	static uint32_t count = 0;
+//	static unsigned char LedFlag  = 1;
 	
 	(void) argument;
 //	osEvent event;
@@ -497,11 +539,11 @@ void TimerLoop(void const *argument)
 				USBD_CUSTOM_HID_SendReport(&USBD_Device, receiveOnce, 32);
 		}
 		
-////		HAL_ADCEx_Calibration_Start(&AdcHandle);
-//		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
+//		HAL_ADCEx_Calibration_Start(&AdcHandle);
+		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
 ////		/* Wait for conversion completion before conditional check hereafter */
 ////    HAL_ADC_PollForConversion(&AdcHandle, 1);
-//		
+//		// uint32_t wTemperature_DegreeCelsius = HAL_ADC_GetValue(&AdcHandle);
 //		lastADValue = aADCxConvertedValues[0];
 //		uint16_t tmp = aADCxConvertedValues[0];
 //		lastADValue += tmp;
@@ -511,25 +553,12 @@ void TimerLoop(void const *argument)
 		if(cnt >= 1 && stepIndex == 0)	// 非升级状态才处理指令
 		{
 				cnt = 0;		// 清计数
-				if(lastLevel == level)
-				{
-//					uint32_t wTemperature_DegreeCelsius = HAL_ADC_GetValue(&AdcHandle);
-						// 赋值内部AD测量值
-						USB_Send_Buf[8] = lastADValue >> 8; USB_Send_Buf[9] = lastADValue;
-						USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
-						USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
-//					USB_Send_Buf[14] = wTemperature_DegreeCelsius >> 24; USB_Send_Buf[15] = wTemperature_DegreeCelsius >> 16;
-//					USB_Send_Buf[16] = wTemperature_DegreeCelsius >> 8; USB_Send_Buf[17] = wTemperature_DegreeCelsius;
-//						event = osSignalWait( BIT_1 | BIT_2, osWaitForever);
-//						if(event.value.signals == (BIT_1 | BIT_2))
-//						{
-								USB_Send_Buf[27] = level;
-								if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
-									USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
-//						}
-				}
-				else
-					lastLevel = level;		// 不发送换档之后的下一个数据
+//			ListDec(10);		// 每次发送10个数据
+			USB_Send_Buf[8] = aADCxConvertedValues[0] >> 8; USB_Send_Buf[9] = aADCxConvertedValues[0];
+			USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
+			USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
+			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 
 		}
 	}
 }

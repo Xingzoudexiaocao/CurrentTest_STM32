@@ -89,7 +89,7 @@ static void LED_Thread(void const *argument);
 
 int main(void)
 {
-	SCB->VTOR = ((uint32_t)0x8000000) | (0x2000 & (uint32_t)0x1FFFFF80);
+//	SCB->VTOR = ((uint32_t)0x8000000) | (0x2000 & (uint32_t)0x1FFFFF80);
 //	__enable_irq();
   /* STM32F103xB HAL library initialization:
        - Configure the Flash prefetch
