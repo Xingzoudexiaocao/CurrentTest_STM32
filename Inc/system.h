@@ -89,6 +89,14 @@ typedef enum
 	THREAD_USB = 2,
 } Thread_TypeDef;
 
+typedef struct
+{
+	unsigned char tips[100];
+	unsigned char level[100];
+	unsigned long value[100];
+	unsigned long index;
+} Struct_SendData;
+
 extern osThreadId LED_ThreadHandle, AD_ThreadHandle, USB_ThreadHandle;
 extern __IO uint16_t   aADCxConvertedValues[ADCCONVERTEDVALUES_BUFFER_SIZE];
 
@@ -104,16 +112,13 @@ extern unsigned char level;
 extern unsigned char cntLevMax;		// 测量大于最大电压计数
 extern unsigned char cntLevMin;		// 测量小于最小电压计数
 
-extern unsigned long listCurrent[100];
-extern unsigned long listVoltage[100];
-extern unsigned long listIndex;
+extern Struct_SendData sSendData;
 extern unsigned char HEADER_CODE[4];
 extern unsigned char TAIL_CODE[4];
 
 extern void SysTimInit(void);
 extern void SetCurrentLevel(uint8_t lev);
 extern void TimerLoop(void const *argument);
-extern void ListAddOne(unsigned long cur, unsigned long vol);
 
 #endif
 

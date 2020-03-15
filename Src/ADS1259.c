@@ -241,6 +241,14 @@ void AD_SPI_DMA_INIT(void)
 		gpioinitstruct.Speed  = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOE, &gpioinitstruct);
 	
+		// PE.1配置成外部中断,下降沿触发
+		gpioinitstruct.Pin    = GPIO_PIN_1;
+		gpioinitstruct.Mode   = GPIO_MODE_IT_FALLING;
+		gpioinitstruct.Pull   = GPIO_PULLUP;
+		gpioinitstruct.Speed  = GPIO_SPEED_FREQ_HIGH;
+		HAL_GPIO_Init(GPIOE, &gpioinitstruct);
+		HAL_NVIC_SetPriority(EXTI1_IRQn,0,0);
+    HAL_NVIC_EnableIRQ(EXTI1_IRQn);       
 	/*##-1- Configure the SPI peripheral #######################################*/
   /* Set the SPI parameters */
   SpiHandle.Instance               = SPIx;
@@ -334,6 +342,15 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
 //	HAL_GPIO_WritePin(LED_2_PORT, LED_2_PIN, GPIO_PIN_SET);	// OFF
 }
+void pushSendDataList(unsigned char lev, unsigned long val, unsigned char tip)
+{
+		sSendData.tips[sSendData.index] = tip;
+		sSendData.level[sSendData.index] = lev;
+		sSendData.value[sSendData.index] = val;
+		sSendData.index++;
+		if(sSendData.index >= sizeof(sSendData.value))
+			sSendData.index = 0;
+}
 // 判断是否换档函数
 void isChangeLevel(unsigned long adValue)
 {
@@ -358,13 +375,11 @@ void isChangeLevel(unsigned long adValue)
 			cntLevMax = 0;
 			if(level == 4 && revelStatic == level)
 			{
-				// 发送超量程数据，电流过大
-				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-				USB_Send_Buf[25] = 0x02; USB_Send_Buf[26] = 0x02;	USB_Send_Buf[27] = level;		// 0x0202表示电流过大
+					pushSendDataList(level, sendBuf, 0x02);
+//				// 发送超量程数据，电流过大
+//				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
+//				USB_Send_Buf[25] = 0x02; USB_Send_Buf[26] = 0x02;	USB_Send_Buf[27] = level;		// 0x0202表示电流过大
 //		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
-		sendBuf = adValue << 8;
-		sendBuf |= level;
-		ListAddOne(sendBuf, (unsigned long)aADCxConvertedValues[0]);
 //				osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 			}
 //			level++;
@@ -401,15 +416,13 @@ void isChangeLevel(unsigned long adValue)
 //			}
 //		}
 ////		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
-//		sendBuf = adValue << 8;
-//		sendBuf |= level;
-//		ListAddOne(sendBuf, (unsigned long)aADCxConvertedValues[0]);
 //			// 发送每次的数据
 			if(revelStatic == level)
 			{
-				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-				USB_Send_Buf[25] = 0x00; USB_Send_Buf[26] = 0x00;			// 0x0000表示电流正常
-				USB_Send_Buf[27] = level;
+					pushSendDataList(level, sendBuf, 0);
+//				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
+//				USB_Send_Buf[25] = 0x00; USB_Send_Buf[26] = 0x00;			// 0x0000表示电流正常
+//				USB_Send_Buf[27] = level;
 			}
 //			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 //				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
@@ -433,9 +446,10 @@ void isChangeLevel(unsigned long adValue)
 		}
 		if(level == 2 && revelStatic == level)
 		{
-			// 发送每次的数据
-			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-			USB_Send_Buf[25] = 0x01; USB_Send_Buf[26] = 0x01;	USB_Send_Buf[27] = level;		// 0x0101表示电流过小
+				pushSendDataList(level, sendBuf, 0x01);
+//			// 发送每次的数据
+//			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
+//			USB_Send_Buf[25] = 0x01; USB_Send_Buf[26] = 0x01;	USB_Send_Buf[27] = level;		// 0x0101表示电流过小
 //			osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 		}
 	}

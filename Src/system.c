@@ -36,11 +36,9 @@ unsigned char level = 4;		// 定义测电流档位（1~4）,默认为4档
 unsigned char cntLevMax = 0;		// 测量大于最大电压计数
 unsigned char cntLevMin = 0;		// 测量小于最小电压计数
 
+Struct_SendData sSendData;
 unsigned char HEADER_CODE[4] = {0xA7, 0x59, 0x3E, 0xBD};
 unsigned char TAIL_CODE[4] = {0x59, 0x3E, 0xBD, 0x00};
-unsigned long listCurrent[100];
-unsigned long listVoltage[100];
-unsigned long listIndex = 0;
 
 static const unsigned short crc16tab[256]= {
  0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,
@@ -84,43 +82,6 @@ unsigned short YModemCRC(unsigned char *buf, int len)
 		for( counter = 0; counter < len; counter++)
 				crc = (crc<<8) ^ crc16tab[((crc>>8) ^ (*buf++))&0x00FF];
 		return crc;
-}
-		
-void ListAddOne(unsigned long cur, unsigned long vol)
-{
-	if(listIndex >= 100)
-		return;
-	listCurrent[listIndex] = cur;
-	listVoltage[listIndex] = vol;
-	listIndex++;
-}
-
-void ListDec(unsigned int num)
-{
-	unsigned int i = 0;
-	if(listIndex < num)
-		return;
-
-//	memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));	// 设置发送数据为0
-//	memcpy(USB_Send_Buf, HEADER_CODE, sizeof(HEADER_CODE));
-	USB_Send_Buf[0] = 0xA7;	USB_Send_Buf[1] = 0x59;
-	USB_Send_Buf[2] = listIndex >> 8;	USB_Send_Buf[3] = listIndex;
-	for(i = 0; i < num; i++)
-	{
-		USB_Send_Buf[4 + i * 6] = listCurrent[i]; USB_Send_Buf[4 + i * 6 + 1] = listCurrent[i] >> 8;
-		USB_Send_Buf[4 + i * 6 + 2] = listCurrent[i] >> 16; USB_Send_Buf[4 + i * 6 + 3] = listCurrent[i] >> 24;
-		USB_Send_Buf[4 + i * 6 + 4] = listVoltage[i]; USB_Send_Buf[4 + i * 6 + 5] = listVoltage[i] >> 8;
-	}
-	for(i = 0; i < 100 - num; i++)
-	{
-		listCurrent[i] = listCurrent[i + 10];
-		listVoltage[i] = listVoltage[i + 10];
-	}
-//	memcpy(listCurrent, listCurrent + num, sizeof(listCurrent) - num);
-//	memcpy(listVoltage, listVoltage + num, sizeof(listVoltage) - num);
-	listIndex -= num;
-	if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
-		USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 64);		// 
 }
 
 static void Error_Handler(void)
@@ -259,7 +220,7 @@ void SysTimInit(void)
 	/* Reset PIN to switch off the LED */
   HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
-	/* Configure PA.0~3 as Level function IO */
+	/* Configure PE.3~6 as Level function IO */
   gpioinitstruct.Pin    = LELVE_1_PIN | LELVE_2_PIN | LELVE_3_PIN | LELVE_4_PIN;
   gpioinitstruct.Mode   = GPIO_MODE_OUTPUT_PP;
   gpioinitstruct.Pull   = GPIO_NOPULL;
@@ -267,6 +228,7 @@ void SysTimInit(void)
   HAL_GPIO_Init(LELVE_PORT, &gpioinitstruct);
 	/* Reset PIN to switch off the LED */
 	SetCurrentLevel(level);	// 设置默认档位
+	memset(&sSendData, 0, sizeof(sSendData));	// 设置发送数据为0
 	memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));	// 设置发送数据为0
 	USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;		// 初始化头码
 	USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD;		// 初始化尾码
@@ -303,8 +265,8 @@ void SetCurrentLevel(uint8_t lev)
 			case 1:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_1_PIN, GPIO_PIN_SET); 	// 先开1
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);	// 后关2
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x11
-				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x00
+				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
 			break;
 			case 2:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_SET); 	// 先开2
@@ -323,8 +285,8 @@ void SetCurrentLevel(uint8_t lev)
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_1_PIN, GPIO_PIN_RESET);	// 后关 1，2，3
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x00
-				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
+				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x11
+				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
 			break;
 			default: break;
 		}
@@ -550,15 +512,21 @@ void TimerLoop(void const *argument)
 //		lastADValue /= 2;
 ////		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
 		cnt++;
-		if(cnt >= 1 && stepIndex == 0)	// 非升级状态才处理指令
+		if(cnt >= 1 && stepIndex == 0 && sSendData.index > 0)	// 非升级状态才处理指令
 		{
 				cnt = 0;		// 清计数
-//			ListDec(10);		// 每次发送10个数据
 			USB_Send_Buf[8] = aADCxConvertedValues[0] >> 8; USB_Send_Buf[9] = aADCxConvertedValues[0];
 			USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
 			USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
+			
+			USB_Send_Buf[4] = sSendData.value[sSendData.index - 1]; USB_Send_Buf[5] = sSendData.value[sSendData.index - 1] >> 8; 
+			USB_Send_Buf[6] = sSendData.value[sSendData.index - 1] >> 16; USB_Send_Buf[7] = sSendData.value[sSendData.index - 1] >> 24;
+			USB_Send_Buf[25] = sSendData.index; USB_Send_Buf[26] = sSendData.tips[sSendData.index - 1];			// 0x0000表示电流正常
+			USB_Send_Buf[27] = sSendData.level[sSendData.index - 1];
 			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 
+			sSendData.index = 0;
+//			memset(&sSendData, 0, sizeof(sSendData));	// 设置发送数据为0
 		}
 	}
 }

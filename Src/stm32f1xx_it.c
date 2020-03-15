@@ -265,6 +265,32 @@ void ADCx_DMA_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(AdcHandle.DMA_Handle);
 }
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+//	uint8_t send_Buf[32];
+	switch(GPIO_Pin)
+	{
+		case GPIO_PIN_1: 
+//			// 重写中断函数
+//					memset(send_Buf, 0, sizeof(send_Buf));
+//					send_Buf[0] = 0x00; send_Buf[1] = 0xbb; send_Buf[2] = 0xcc; send_Buf[3] = 0xdd;
+//					send_Buf[4] = 0x00; send_Buf[5] = 0x00 >> 8; send_Buf[6] = 0x00 >> 16; send_Buf[7] = 0x00 >> 24;
+//					// 0xFF**表示SIP获取AD出错,或者偏移超过最小值
+//					send_Buf[28] = 0x59; send_Buf[29] = 0x3E; send_Buf[30] = 0xBD; send_Buf[27] = level;
+//					USBD_CUSTOM_HID_SendReport(&USBD_Device, send_Buf, 32);
+			level = 4;
+			SetCurrentLevel(level);	// 设置默认档位,升档直接升至最高档4档
+			break;
+		default: break;
+	}
+}
+void GPIO_EXTI1_IRQHandler(void)
+{
+	 HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);//调用中断处理公用函数
+	
+
+}
 /******************************************************************************/
 /*                 STM32F1xx Peripherals Interrupt Handlers                   */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
