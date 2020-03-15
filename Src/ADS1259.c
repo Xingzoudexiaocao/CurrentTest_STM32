@@ -340,14 +340,23 @@ void isChangeLevel(unsigned long adValue)
 //	unsigned char i = 0;
 	unsigned long sendBuf = adValue;
 	adValue = adValue >> 8;		// 移除校验位
+	static unsigned char revelStatic = 0;
+	static unsigned char maxCnt = 0;
+	static unsigned char minCnt = 0;
+	static unsigned char normalCnt = 0;
+	
 	if(adValue > LEVEL_MAX)
 	{
 		cntLevMin = 0;
 		cntLevMax ++;
+		minCnt = 0;
+		normalCnt = 0;
+		if(++maxCnt == 50)
+			revelStatic = level;
 		if(cntLevMax >= 1)			// 出现一次，直接升档 CNT_TOTAL
 		{
 			cntLevMax = 0;
-			if(level == 4)
+			if(level == 4 && revelStatic == level)
 			{
 				// 发送超量程数据，电流过大
 				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
@@ -369,6 +378,10 @@ void isChangeLevel(unsigned long adValue)
 	{
 		cntLevMax = 0;
 		cntLevMin = 0;
+		minCnt = 0;
+		maxCnt = 0;
+		if(++normalCnt == 50)
+			revelStatic = level;
 //		// 发送n次的平均值
 //		curSendTmp[curSendCnt] = adValue;
 //		curSendCnt++;
@@ -392,9 +405,12 @@ void isChangeLevel(unsigned long adValue)
 //		sendBuf |= level;
 //		ListAddOne(sendBuf, (unsigned long)aADCxConvertedValues[0]);
 //			// 发送每次的数据
-			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
-		  USB_Send_Buf[25] = 0x00; USB_Send_Buf[26] = 0x00;			// 0x0000表示电流正常
-			USB_Send_Buf[27] = level;
+			if(revelStatic == level)
+			{
+				USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
+				USB_Send_Buf[25] = 0x00; USB_Send_Buf[26] = 0x00;			// 0x0000表示电流正常
+				USB_Send_Buf[27] = level;
+			}
 //			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 //				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
 //			osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
@@ -403,15 +419,19 @@ void isChangeLevel(unsigned long adValue)
 	{
 		cntLevMax = 0;
 		cntLevMin ++;
+		normalCnt = 0;
+		maxCnt = 0;
+		if(++minCnt == 50)
+			revelStatic = level;
 		if(cntLevMin >= 5)	// 出现一次，直接降档 CNT_TOTAL
 		{
 			cntLevMin = 0;
 			level--;
-			if(level <= 1)
-				level = 1;
+			if(level <= 2)
+				level = 2;
 			SetCurrentLevel(level);	// 设置默认档位
 		}
-		if(level == 1)
+		if(level == 2 && revelStatic == level)
 		{
 			// 发送每次的数据
 			USB_Send_Buf[4] = sendBuf; USB_Send_Buf[5] = sendBuf >> 8; USB_Send_Buf[6] = sendBuf >> 16; USB_Send_Buf[7] = sendBuf >> 24;
