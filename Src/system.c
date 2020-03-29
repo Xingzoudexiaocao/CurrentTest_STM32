@@ -36,6 +36,8 @@ unsigned char level = 4;		// 定义测电流档位（1~4）,默认为4档
 unsigned char cntLevMax = 0;		// 测量大于最大电压计数
 unsigned char cntLevMin = 0;		// 测量小于最小电压计数
 
+unsigned char verifyModeFlag = 0;							// 不为0为校准模式
+
 Struct_SendData sSendData;
 unsigned char HEADER_CODE[4] = {0xA7, 0x59, 0x3E, 0xBD};
 unsigned char TAIL_CODE[4] = {0x59, 0x3E, 0xBD, 0x00};
@@ -364,6 +366,7 @@ void TimerLoop(void const *argument)
 				{
 						if(USB_Receive_Buf[4] <= 4)
 						{
+							verifyModeFlag = 0;		// 退出校准模式
 							level = USB_Receive_Buf[4];
 							HAL_GPIO_WritePin(LELVE_PORT,LELVE_1_PIN, GPIO_PIN_RESET);	// 关 1，2，3，4
 							HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);
@@ -392,6 +395,21 @@ void TimerLoop(void const *argument)
 //								TestWriteFlash();
 								SendVersionLength();
 						}
+						else if(USB_Receive_Buf[4] >= 0x10 && USB_Receive_Buf[4] < 0x20)
+						{
+								verifyModeFlag = USB_Receive_Buf[4] - 0x10;		// 进入校准模式
+								level = (verifyModeFlag - 1) / 2 + 1;		// 1/2对应1档；3/4对应2档；5/6对应3档；7/8对应4档
+								HAL_GPIO_WritePin(LELVE_PORT,LELVE_1_PIN, GPIO_PIN_RESET);	// 关 1，2，3，4
+								HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);
+								HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_RESET);
+								HAL_GPIO_WritePin(LELVE_PORT,LELVE_4_PIN, GPIO_PIN_RESET);
+								SetCurrentLevel(level);				// 再开对应档位
+						}
+						else if(USB_Receive_Buf[4] == 0x20)
+						{
+								SetVerifyValue(9, 0);		// 读取各个档位的校验值并发送给上位机
+						}
+						continue;
 				}
 				// 以下代码为AppUpdata代码
 				memcpy(receiveOnce, USB_Receive_Buf, 32);
@@ -512,7 +530,7 @@ void TimerLoop(void const *argument)
 //		lastADValue /= 2;
 ////		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
 		cnt++;
-		if(cnt >= 1 && stepIndex == 0 && sSendData.index > 0)	// 非升级状态才处理指令
+		if(cnt >= 1 && stepIndex == 0 && sSendData.index > 0 && verifyModeFlag == 0)	// 非升级状态才处理指令,校准模式不发指令
 		{
 				cnt = 0;		// 清计数
 			USB_Send_Buf[8] = aADCxConvertedValues[0] >> 8; USB_Send_Buf[9] = aADCxConvertedValues[0];

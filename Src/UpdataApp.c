@@ -56,7 +56,7 @@ void TestWriteFlash(void)
 //	}
 	
 }
-
+// 发送程序软件版本号和文件长度信息
 void SendVersionLength(void)
 {
 	u8 buf[32];
@@ -66,4 +66,21 @@ void SendVersionLength(void)
 		USBD_CUSTOM_HID_SendReport(&USBD_Device, buf, 32);	// 发送数据
 	
 }
-
+// 设置校验值到Flash，同时发送校验值给上位机
+void SetVerifyValue(u8 lev, u32 val)
+{
+	u8 buf[32];
+	u8 flashValue[100];
+	MemoryRead((u8 *)(VERIFY_ADDR), sizeof(flashValue),0,flashValue);	// 读取
+	if(lev >= 1 && lev <= 8)
+	{
+		memcpy(flashValue + (lev - 1) * 4, &val, sizeof(val));
+		MemoryWrite(VERIFY_ADDR, flashValue, sizeof(flashValue));		// 写入
+	}
+	
+	memset(&buf, YMODEM_VALID_VALUE_1, 32);	// 
+	memcpy(buf + 4, flashValue + 8, 24);					// 去除1档的校验数据
+	if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+		USBD_CUSTOM_HID_SendReport(&USBD_Device, buf, 32);	// 发送数据
+	
+}

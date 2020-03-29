@@ -361,6 +361,30 @@ void isChangeLevel(unsigned long adValue)
 	static unsigned char maxCnt = 0;
 	static unsigned char minCnt = 0;
 	static unsigned char normalCnt = 0;
+	// 校准部分数据
+	static unsigned int vTime1sCount = 0;
+	static unsigned char vIndexCount = 0;
+	static unsigned long vValue = 0;
+	
+	if(verifyModeFlag)		// 校准模式不换档
+	{
+		if(++vTime1sCount >= 14000)
+		{
+			vTime1sCount = 14000;
+			vValue += adValue;
+			vIndexCount++;
+			if(vIndexCount >= 100)
+			{
+					vIndexCount = 0;
+					vValue /= 100;
+					SetVerifyValue(verifyModeFlag, vValue);
+					verifyModeFlag = 0;		// 退出校准模式
+			}
+		}
+		return;						
+	}
+	vTime1sCount = 0; vIndexCount = 0; vValue = 0;
+	
 	
 	if(adValue > LEVEL_MAX)
 	{

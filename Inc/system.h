@@ -78,6 +78,8 @@
 #define YMODEM_NAK (0x15)
 #define YMODEM_VER_LEN (0xA3)
 #define YMODEM_TIMEOUT (0x7B)
+#define YMODEM_VALID_VALUE_1 (0x56)
+#define YMODEM_VALID_VALUE_2 (0x59)
 
 //#define YMODEM_CAN (0x18)
 //#define YMODEM_C (0x43)
@@ -111,6 +113,7 @@ extern volatile uint16_t USB_Receive_count;
 extern unsigned char level;
 extern unsigned char cntLevMax;		// 测量大于最大电压计数
 extern unsigned char cntLevMin;		// 测量小于最小电压计数
+extern unsigned char verifyModeFlag;
 
 extern Struct_SendData sSendData;
 extern unsigned char HEADER_CODE[4];
