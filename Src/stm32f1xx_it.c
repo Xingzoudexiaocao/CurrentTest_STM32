@@ -268,6 +268,7 @@ void ADCx_DMA_IRQHandler(void)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+//	return;
 //	uint8_t send_Buf[32];
 	switch(GPIO_Pin)
 	{

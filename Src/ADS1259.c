@@ -241,9 +241,13 @@ void AD_SPI_DMA_INIT(void)
 		gpioinitstruct.Speed  = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOE, &gpioinitstruct);
 	
-		// PE.1配置成外部中断,下降沿触发
+		// PE.1配置成外部中断
 		gpioinitstruct.Pin    = GPIO_PIN_1;
-		gpioinitstruct.Mode   = GPIO_MODE_IT_FALLING;
+		#if (SCH_TYPE ==	SCH_V1_2)
+		gpioinitstruct.Mode   = GPIO_MODE_IT_FALLING;			// 下降沿有效
+		#else	//if (SCH_TYPE ==	SCH_V1_3)
+		gpioinitstruct.Mode   = GPIO_MODE_IT_RISING;			// 上升沿有效
+		#endif
 		gpioinitstruct.Pull   = GPIO_PULLUP;
 		gpioinitstruct.Speed  = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOE, &gpioinitstruct);
@@ -460,7 +464,7 @@ void isChangeLevel(unsigned long adValue)
 		maxCnt = 0;
 		if(++minCnt == 50)
 			revelStatic = level;
-		if(cntLevMin >= 5)	// 出现一次，直接降档 CNT_TOTAL
+		if(cntLevMin >= 50)	// 出现一次，直接降档 CNT_TOTAL
 		{
 			cntLevMin = 0;
 			level--;

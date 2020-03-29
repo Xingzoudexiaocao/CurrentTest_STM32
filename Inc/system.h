@@ -3,6 +3,10 @@
 
 #include "main.h"
 
+#define SCH_V1_2  	1
+#define SCH_V1_3  	2
+#define SCH_TYPE 	SCH_V1_3
+
 #define BIT_0	( 1 << 0 )
 #define BIT_1	( 1 << 1 )
 #define BIT_2	( 1 << 2 )
