@@ -71,8 +71,9 @@
 #define LELVE_3_PIN               GPIO_PIN_5
 #define LELVE_4_PIN               GPIO_PIN_6
 
-#define LEVEL_MAX   0x6B851D			// 换档最大电压 2.1v
-#define LEVEL_MIN 	0x010000			// 换档最小电压 19.53mv
+#define LEVEL_MAX   	0x6B851D			// 换档最大电压 2.1v
+#define LEVEL_MIN 		0x010000			// 换档最小电压 19.53mv
+#define LEVEL_MIN_2 	0x008000			// 换档最小电压 19.53mv/2
 #define CNT_TOTAL		10  	// 连续出现n次超量程数据就换档
 
 #define YMODEM_SOH (0x01)

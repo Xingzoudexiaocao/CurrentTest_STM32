@@ -370,6 +370,12 @@ void isChangeLevel(unsigned long adValue)
 	static unsigned char vIndexCount = 0;
 	static unsigned long vValue = 0;
 	
+	unsigned long level_min_buffer = 0;
+	if(level == 4)
+		level_min_buffer = LEVEL_MIN_2;
+	else
+		level_min_buffer = LEVEL_MIN;
+	
 	if(verifyModeFlag)		// 校准模式不换档
 	{
 		if(++vTime1sCount >= 14000)
@@ -417,7 +423,7 @@ void isChangeLevel(unsigned long adValue)
 
 		}
 	}
-	else if(adValue <= LEVEL_MAX && adValue >= LEVEL_MIN)
+	else if(adValue <= LEVEL_MAX && adValue >= level_min_buffer)
 	{
 		cntLevMax = 0;
 		cntLevMin = 0;
@@ -456,7 +462,7 @@ void isChangeLevel(unsigned long adValue)
 //				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 没隔10ms发送数据
 //			osSignalSet( USB_ThreadHandle, BIT_1 | BIT_2 );
 	}
-	else if(adValue < LEVEL_MIN)
+	else if(adValue < level_min_buffer)
 	{
 		cntLevMax = 0;
 		cntLevMin ++;
