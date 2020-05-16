@@ -6,7 +6,7 @@
 #define MASTER_BOARD
 
 //u8 InitData[9]={0x05,0x18,0x22,0xff,0xff,0x7f,0x00,0x00,0x40};
-u8 InitData[9]={0x05,0x40,0x07,0x00,0x00,0x00,0x00,0x00,0x40};		// 寄存器的值, FSC  ox4BBC50
+u8 InitData[9]={0x05,0x40,0x05,0x00,0x00,0x00,0x00,0x00,0x40};		// 寄存器的值, FSC  ox4BBC50
 u8 RecData[9];
 
 //unsigned long curSendTmp[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -378,15 +378,15 @@ void isChangeLevel(unsigned long adValue)
 	
 	if(verifyModeFlag)		// 校准模式不换档
 	{
-		if(++vTime1sCount >= 14000)
+		if(++vTime1sCount >= 1400)
 		{
-			vTime1sCount = 14000;
+			vTime1sCount = 1400;
 			vValue += adValue;
 			vIndexCount++;
-			if(vIndexCount >= 100)
+			if(vIndexCount >= 200)
 			{
 					vIndexCount = 0;
-					vValue /= 100;
+					vValue /= 200;
 					SetVerifyValue(verifyModeFlag, vValue);
 					verifyModeFlag = 0;		// 退出校准模式
 			}
@@ -402,7 +402,7 @@ void isChangeLevel(unsigned long adValue)
 		cntLevMax ++;
 		minCnt = 0;
 		normalCnt = 0;
-		if(++maxCnt == 50)
+		if(++maxCnt == 5)
 			revelStatic = level;
 		if(cntLevMax >= 1)			// 出现一次，直接升档 CNT_TOTAL
 		{
@@ -429,7 +429,7 @@ void isChangeLevel(unsigned long adValue)
 		cntLevMin = 0;
 		minCnt = 0;
 		maxCnt = 0;
-		if(++normalCnt == 50)
+		if(++normalCnt == 5)
 			revelStatic = level;
 //		// 发送n次的平均值
 //		curSendTmp[curSendCnt] = adValue;
@@ -468,9 +468,9 @@ void isChangeLevel(unsigned long adValue)
 		cntLevMin ++;
 		normalCnt = 0;
 		maxCnt = 0;
-		if(++minCnt == 50)
+		if(++minCnt == 5)
 			revelStatic = level;
-		if(cntLevMin >= 50)	// 出现一次，直接降档 CNT_TOTAL
+		if(cntLevMin >= 5)	// 出现一次，直接降档 CNT_TOTAL
 		{
 			cntLevMin = 0;
 			level--;
