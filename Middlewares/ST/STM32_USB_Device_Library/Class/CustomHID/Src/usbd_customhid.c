@@ -412,6 +412,8 @@ uint8_t USBD_CUSTOM_HID_SendReport     (USBD_HandleTypeDef  *pdev,
                         len);
 			return USBD_OK;
     }
+		else
+			testUsbSendCnt++;
   }
   return USBD_FAIL;
 }

@@ -37,6 +37,7 @@ unsigned char cntLevMax = 0;		// 测量大于最大电压计数
 unsigned char cntLevMin = 0;		// 测量小于最小电压计数
 
 unsigned char verifyModeFlag = 0;							// 不为0为校准模式
+unsigned long testUsbSendCnt = 0;			// 测试USB发送数据个数
 
 Struct_SendData sSendData;
 unsigned char HEADER_CODE[4] = {0xA7, 0x59, 0x3E, 0xBD};
@@ -220,8 +221,8 @@ void SysTimInit(void)
   gpioinitstruct.Speed  = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(LED_2_PORT, &gpioinitstruct);
 	/* Reset PIN to switch off the LED */
-  HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);		// LED1 OFF
+	HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);		// LED2 OFF
 	/* Configure PE.3~6 as Level function IO */
   gpioinitstruct.Pin    = LELVE_1_PIN | LELVE_2_PIN | LELVE_3_PIN | LELVE_4_PIN;
   gpioinitstruct.Mode   = GPIO_MODE_OUTPUT_PP;
@@ -269,24 +270,24 @@ void SetCurrentLevel(uint8_t lev)
 				delay_us(10);
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);	// 后关2
 				delay_us(10);
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x00
-				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x00
+//				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
 			break;
 			case 2:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_SET); 	// 先开2
 				delay_us(10);
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_RESET);	// 后关3
 				delay_us(10);
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x10
-				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x10
+//				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
 			break;
 			case 3:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_SET); 	// 先开3
 				delay_us(10);
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_4_PIN, GPIO_PIN_RESET);	// 后关4
 				delay_us(10);
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x01
-				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x01
+//				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
 			break;
 			case 4:	
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_4_PIN, GPIO_PIN_SET); 		// 先开4
@@ -295,8 +296,8 @@ void SetCurrentLevel(uint8_t lev)
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_2_PIN, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(LELVE_PORT,LELVE_3_PIN, GPIO_PIN_RESET);
 				delay_us(10);
-				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x11
-				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
+//				HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x11
+//				HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
 			break;
 			default: break;
 		}
@@ -325,6 +326,7 @@ void TimerLoop(void const *argument)
 //	static uint16_t lastADValue = 0;
 //	static unsigned char lastLevel = 4;
 	static unsigned char cnt = 0;
+	static unsigned long testCnt = 0;
 //	static uint32_t count = 0;
 //	static unsigned char LedFlag  = 1;
 	
@@ -340,6 +342,7 @@ void TimerLoop(void const *argument)
 //				USB_Receive_count = 0;
 //		}
 		osDelay(1);	// 延时10ms
+		
 //		delay_ms(10);	// 测试延时函数是否可用
 //		count++;
 //		if(count >= 100)
@@ -416,6 +419,11 @@ void TimerLoop(void const *argument)
 						else if(USB_Receive_Buf[4] == 0x20)
 						{
 								SetVerifyValue(9, 0);		// 读取各个档位的校验值并发送给上位机
+								HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_RESET);	// LED2  ON
+						}
+						else if(USB_Receive_Buf[4] == 0x21)
+						{
+								HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
 						}
 						continue;
 				}
@@ -449,7 +457,7 @@ void TimerLoop(void const *argument)
 //							delay_ms(10);	// 测试延时函数是否可用
 							
 							pageIndex++;
-							if(pageIndex >= 250)	// 不允许接收超过250k数据
+							if(pageIndex >= 122)	// 不允许接收超过122k数据
 							{
 								pageIndex = 0;
 								stepIndex = 0;
@@ -538,7 +546,7 @@ void TimerLoop(void const *argument)
 //		lastADValue /= 2;
 ////		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
 		cnt++;
-		if(cnt >= 1 && stepIndex == 0 && sSendData.index > 0 && verifyModeFlag == 0)	// 非升级状态才处理指令,校准模式不发指令
+		if(cnt >= 1 && stepIndex == 0 && sSendData.index > 0 && verifyModeFlag == 0)	// 非升级状态才处理指令,校准模式不发指令 
 		{
 				cnt = 0;		// 清计数
 			USB_Send_Buf[8] = aADCxConvertedValues[0] >> 8; USB_Send_Buf[9] = aADCxConvertedValues[0];
@@ -549,9 +557,19 @@ void TimerLoop(void const *argument)
 			USB_Send_Buf[6] = sSendData.value[sSendData.index - 1] >> 16; USB_Send_Buf[7] = sSendData.value[sSendData.index - 1] >> 24;
 			USB_Send_Buf[25] = sSendData.index; USB_Send_Buf[26] = sSendData.tips[sSendData.index - 1];			// 0x0000表示电流正常
 			USB_Send_Buf[27] = sSendData.level[sSendData.index - 1];
+			
+			USB_Send_Buf[16] = testCnt; USB_Send_Buf[17] = testCnt >> 8; 
+			USB_Send_Buf[18] = testCnt >> 16; USB_Send_Buf[19] = testCnt >> 24;
+			USB_Send_Buf[20] = testUsbSendCnt; USB_Send_Buf[21] = testUsbSendCnt >> 8; 
+			USB_Send_Buf[22] = testUsbSendCnt >> 16; USB_Send_Buf[23] = testUsbSendCnt >> 24;
+			testCnt++;
 			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 
+			else
+				testCnt = 0;
+			
 			sSendData.index = 0;
+			
 //			memset(&sSendData, 0, sizeof(sSendData));	// 设置发送数据为0
 		}
 	}

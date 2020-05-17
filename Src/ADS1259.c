@@ -252,7 +252,7 @@ void AD_SPI_DMA_INIT(void)
 		gpioinitstruct.Speed  = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOE, &gpioinitstruct);
 		HAL_NVIC_SetPriority(EXTI1_IRQn,0,0);
-    HAL_NVIC_EnableIRQ(EXTI1_IRQn);       
+    HAL_NVIC_EnableIRQ(EXTI1_IRQn);       // 开外部中断
 	/*##-1- Configure the SPI peripheral #######################################*/
   /* Set the SPI parameters */
   SpiHandle.Instance               = SPIx;
@@ -352,8 +352,8 @@ void pushSendDataList(unsigned char lev, unsigned long val, unsigned char tip)
 		sSendData.level[sSendData.index] = lev;
 		sSendData.value[sSendData.index] = val;
 		sSendData.index++;
-		if(sSendData.index >= sizeof(sSendData.value))
-			sSendData.index = 0;
+		if(sSendData.index >= sizeof(sSendData.tips))
+			sSendData.index = 1;
 }
 // 判断是否换档函数
 void isChangeLevel(unsigned long adValue)
@@ -420,7 +420,7 @@ void isChangeLevel(unsigned long adValue)
 //			if(level >= 4)
 				level = 4;
 			SetCurrentLevel(level);	// 设置默认档位,升档直接升至最高档4档
-
+			maxCnt = 0;
 		}
 	}
 	else if(adValue <= LEVEL_MAX && adValue >= level_min_buffer)
@@ -477,6 +477,8 @@ void isChangeLevel(unsigned long adValue)
 			if(level <= 2)
 				level = 2;
 			SetCurrentLevel(level);	// 设置默认档位
+			minCnt = 0;
+//			HAL_NVIC_EnableIRQ(EXTI1_IRQn);       // 开外部中断
 		}
 		if(level == 2 && revelStatic == level)
 		{
@@ -504,7 +506,7 @@ void ADLoop(void const *argument)
 		
 //			HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);		// PA1测试
 		
-			if(testAD >= 0xF0000000 && level == 1)
+			if(testAD >= 0xF0000000 && level == 2)
 				testAD = 0x9B;		// 小于0的偏移数据，默认为0 + 0x9B
 			
 //			if(testAD == 0x80000000U + 100)

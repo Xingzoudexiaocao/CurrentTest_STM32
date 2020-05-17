@@ -285,6 +285,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			break;
 		default: break;
 	}
+	HAL_NVIC_DisableIRQ(EXTI1_IRQn); 		// 关外部中断
 }
 void GPIO_EXTI1_IRQHandler(void)
 {

@@ -247,7 +247,7 @@ USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops = {
   */
 static int8_t CustomHID_Init(void)
 {
-
+	HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_RESET);	// LED1  ON	0x11
   return (0);
 }
 
@@ -261,6 +261,7 @@ static int8_t CustomHID_DeInit(void)
 {
   /* 
    * Add your deinitialization code here */
+	HAL_GPIO_WritePin(LED_1_PORT,LED_1_PIN, GPIO_PIN_SET);	// LED1  OFF	0x00
   return (0);
 }
 
@@ -273,7 +274,6 @@ static int8_t CustomHID_DeInit(void)
   */
 static int8_t CustomHID_OutEvent(uint8_t event_idx, uint8_t state)
 {
-	
 //	USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 2);	// ≤‚ ‘
 	
 //  switch (event_idx)

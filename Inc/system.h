@@ -119,6 +119,7 @@ extern unsigned char level;
 extern unsigned char cntLevMax;		// 测量大于最大电压计数
 extern unsigned char cntLevMin;		// 测量小于最小电压计数
 extern unsigned char verifyModeFlag;
+extern unsigned long testUsbSendCnt;			// 测试USB发送数据个数
 
 extern Struct_SendData sSendData;
 extern unsigned char HEADER_CODE[4];
