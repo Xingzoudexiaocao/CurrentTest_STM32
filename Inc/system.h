@@ -125,6 +125,8 @@ extern Struct_SendData sSendData;
 extern unsigned char HEADER_CODE[4];
 extern unsigned char TAIL_CODE[4];
 
+extern unsigned char stepIndex;
+
 extern void SysTimInit(void);
 extern void SetCurrentLevel(uint8_t lev);
 extern void TimerLoop(void const *argument);

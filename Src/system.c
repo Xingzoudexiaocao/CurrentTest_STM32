@@ -43,6 +43,8 @@ Struct_SendData sSendData;
 unsigned char HEADER_CODE[4] = {0xA7, 0x59, 0x3E, 0xBD};
 unsigned char TAIL_CODE[4] = {0x59, 0x3E, 0xBD, 0x00};
 
+unsigned char stepIndex = 0;
+
 static const unsigned short crc16tab[256]= {
  0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,
  0x8108,0x9129,0xa14a,0xb16b,0xc18c,0xd1ad,0xe1ce,0xf1ef,
@@ -310,7 +312,6 @@ void SetCurrentLevel(uint8_t lev)
 
 void TimerLoop(void const *argument)
 {
- 	static unsigned char stepIndex = 0;
 	static uint32_t pageIndex = 0;
 	static unsigned char receivePage[1056];
 	static unsigned char receiveOnce[32];
@@ -326,9 +327,11 @@ void TimerLoop(void const *argument)
 //	static uint16_t lastADValue = 0;
 //	static unsigned char lastLevel = 4;
 	static unsigned char cnt = 0;
-	static unsigned long testCnt = 0;
+//	static unsigned long testCnt = 0;
 //	static uint32_t count = 0;
 //	static unsigned char LedFlag  = 1;
+	static uint16_t adValueBuf[2][ADCCONVERTEDVALUES_BUFFER_SIZE];
+	static unsigned int j = 0;
 	
 	(void) argument;
 //	osEvent event;
@@ -537,6 +540,10 @@ void TimerLoop(void const *argument)
 		
 //		HAL_ADCEx_Calibration_Start(&AdcHandle);
 		HAL_ADC_Start(&AdcHandle);		// 启动AD转换
+		memcpy(&adValueBuf[j], &aADCxConvertedValues, ADCCONVERTEDVALUES_BUFFER_SIZE);
+		j++;
+		if(j >= 2)
+			j = 0;
 ////		/* Wait for conversion completion before conditional check hereafter */
 ////    HAL_ADC_PollForConversion(&AdcHandle, 1);
 //		// uint32_t wTemperature_DegreeCelsius = HAL_ADC_GetValue(&AdcHandle);
@@ -546,27 +553,40 @@ void TimerLoop(void const *argument)
 //		lastADValue /= 2;
 ////		wTemperature_DegreeCelsius = COMPUTATION_TEMPERATURE_STD_PARAMS(aADCxConvertedValues[1]);		// 温度换算
 		cnt++;
-		if(cnt >= 1 && stepIndex == 0 && sSendData.index > 0 && verifyModeFlag == 0)	// 非升级状态才处理指令,校准模式不发指令 
+		if(cnt >= 2 && stepIndex == 0 && sSendData.index >= 2 && verifyModeFlag == 0)	// 非升级状态才处理指令,校准模式不发指令  
 		{
 				cnt = 0;		// 清计数
-			USB_Send_Buf[8] = aADCxConvertedValues[0] >> 8; USB_Send_Buf[9] = aADCxConvertedValues[0];
-			USB_Send_Buf[10] = aADCxConvertedValues[1] >> 8; USB_Send_Buf[11] = aADCxConvertedValues[1];
-			USB_Send_Buf[12] = aADCxConvertedValues[2] >> 8; USB_Send_Buf[13] = aADCxConvertedValues[2];
-			
 			USB_Send_Buf[4] = sSendData.value[sSendData.index - 1]; USB_Send_Buf[5] = sSendData.value[sSendData.index - 1] >> 8; 
 			USB_Send_Buf[6] = sSendData.value[sSendData.index - 1] >> 16; USB_Send_Buf[7] = sSendData.value[sSendData.index - 1] >> 24;
+			USB_Send_Buf[8] = adValueBuf[1][0] >> 8; USB_Send_Buf[9] = adValueBuf[1][0];
+			USB_Send_Buf[10] = adValueBuf[1][1] >> 8; USB_Send_Buf[11] = adValueBuf[1][1];
+			USB_Send_Buf[12] = adValueBuf[1][2] >> 8; USB_Send_Buf[13] = adValueBuf[1][2];
+			
+			if(sSendData.level[sSendData.index - 1] == sSendData.level[sSendData.index - 2])
+			{
+				USB_Send_Buf[14] = sSendData.value[sSendData.index - 2]; USB_Send_Buf[15] = sSendData.value[sSendData.index - 2] >> 8; 
+				USB_Send_Buf[16] = sSendData.value[sSendData.index - 2] >> 16; USB_Send_Buf[17] = sSendData.value[sSendData.index - 2] >> 24;
+				USB_Send_Buf[18] = adValueBuf[0][0] >> 8; USB_Send_Buf[19] = adValueBuf[0][0];
+				USB_Send_Buf[20] = adValueBuf[0][1] >> 8; USB_Send_Buf[21] = adValueBuf[0][1];
+				USB_Send_Buf[22] = adValueBuf[0][2] >> 8; USB_Send_Buf[23] = adValueBuf[0][2];
+			}
+			else
+			{
+				memcpy(USB_Send_Buf + 14, USB_Send_Buf + 4, 10);
+			}
+			
 			USB_Send_Buf[25] = sSendData.index; USB_Send_Buf[26] = sSendData.tips[sSendData.index - 1];			// 0x0000表示电流正常
 			USB_Send_Buf[27] = sSendData.level[sSendData.index - 1];
 			
-			USB_Send_Buf[16] = testCnt; USB_Send_Buf[17] = testCnt >> 8; 
-			USB_Send_Buf[18] = testCnt >> 16; USB_Send_Buf[19] = testCnt >> 24;
-			USB_Send_Buf[20] = testUsbSendCnt; USB_Send_Buf[21] = testUsbSendCnt >> 8; 
-			USB_Send_Buf[22] = testUsbSendCnt >> 16; USB_Send_Buf[23] = testUsbSendCnt >> 24;
-			testCnt++;
+//			USB_Send_Buf[16] = testCnt; USB_Send_Buf[17] = testCnt >> 8; 
+//			USB_Send_Buf[18] = testCnt >> 16; USB_Send_Buf[19] = testCnt >> 24;
+//			USB_Send_Buf[20] = testUsbSendCnt; USB_Send_Buf[21] = testUsbSendCnt >> 8; 
+//			USB_Send_Buf[22] = testUsbSendCnt >> 16; USB_Send_Buf[23] = testUsbSendCnt >> 24;
+//			testCnt++;
 			if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 				USBD_CUSTOM_HID_SendReport(&USBD_Device, USB_Send_Buf, 32);		// 
-			else
-				testCnt = 0;
+//			else
+//				testCnt = 0;
 			
 			sSendData.index = 0;
 			

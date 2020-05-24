@@ -478,7 +478,7 @@ void isChangeLevel(unsigned long adValue)
 				level = 2;
 			SetCurrentLevel(level);	// 设置默认档位
 			minCnt = 0;
-//			HAL_NVIC_EnableIRQ(EXTI1_IRQn);       // 开外部中断
+			HAL_NVIC_EnableIRQ(EXTI1_IRQn);       // 开外部中断
 		}
 		if(level == 2 && revelStatic == level)
 		{
@@ -516,7 +516,7 @@ void ADLoop(void const *argument)
 			if(testAD >= 0x80000000)
 			{
 				uint8_t send_Buf[32];
-				if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+				if (USBD_Device.dev_state == USBD_STATE_CONFIGURED && stepIndex == 0)		// 非升级状态才发错误数据
 				{
 						memset(send_Buf, 0, sizeof(send_Buf));
 						send_Buf[0] = 0xaa; send_Buf[1] = 0xbb; send_Buf[2] = 0xcc; send_Buf[3] = 0xdd;

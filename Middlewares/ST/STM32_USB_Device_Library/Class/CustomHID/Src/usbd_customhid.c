@@ -162,9 +162,9 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   /* 18 */
   0x09,         /*bLength: CUSTOM_HID Descriptor size*/
   CUSTOM_HID_DESCRIPTOR_TYPE, /*bDescriptorType: CUSTOM_HID*/
-  0x11,         /*bCUSTOM_HIDUSTOM_HID: CUSTOM_HID Class Spec release number*/
+  0x10,         /*bCUSTOM_HIDUSTOM_HID: CUSTOM_HID Class Spec release number*/
   0x01,
-  0x00,         /*bCountryCode: Hardware target country*/
+  0x21,         /*bCountryCode: Hardware target country*/
   0x01,         /*bNumDescriptors: Number of CUSTOM_HID class descriptors to follow*/
   0x22,         /*bDescriptorType*/
   USBD_CUSTOM_HID_REPORT_DESC_SIZE,/*wItemLength: Total length of Report descriptor*/
@@ -178,7 +178,7 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   0x03,          /*bmAttributes: Interrupt endpoint*/
   CUSTOM_HID_EPIN_SIZE, /*wMaxPacketSize: 2 Byte max */
   0x00,
-  0x01,          /*bInterval: Polling Interval (20 ms)*/	// 轮询方式传输，默认0x20，改为0x01
+  0x00,          /*bInterval: Polling Interval (20 ms)*/	// 轮询方式传输，默认0x20，改为0x01
   /* 34 */
   
   0x07,	         /* bLength: Endpoint Descriptor size */
@@ -187,7 +187,7 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_CfgDesc[USB_CUSTOM_HID_CONFIG_DESC_
   0x03,	/* bmAttributes: Interrupt endpoint */
   CUSTOM_HID_EPOUT_SIZE,	/* wMaxPacketSize: 2 Bytes max  */
   0x00,
-  0x01,	/* bInterval: Polling Interval (20 ms) */		// 轮询方式传输，默认0x20，改为0x01
+  0x00,	/* bInterval: Polling Interval (20 ms) */		// 轮询方式传输，默认0x20，改为0x01
   /* 41 */
 } ;
 
@@ -400,7 +400,7 @@ uint8_t USBD_CUSTOM_HID_SendReport     (USBD_HandleTypeDef  *pdev,
                                  uint16_t len)
 {
   USBD_CUSTOM_HID_HandleTypeDef     *hhid = (USBD_CUSTOM_HID_HandleTypeDef*)pdev->pClassData;
-  
+//  USBD_CUSTOM_HID_DataIn(pdev, CUSTOM_HID_EPIN_ADDR);			// 置空闲状态
   if (pdev->dev_state == USBD_STATE_CONFIGURED )
   {
     if(hhid->state == CUSTOM_HID_IDLE)
