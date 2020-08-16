@@ -2,6 +2,7 @@
 #include "ADS1259.h"
 #include "delay.h"
 #include "system.h"
+#include "UpdataApp.h"
 
 #define MASTER_BOARD
 

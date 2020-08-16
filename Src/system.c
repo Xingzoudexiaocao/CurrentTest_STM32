@@ -17,6 +17,7 @@
 #include "delay.h"
 #include "UpdataApp.h"
 #include "Flash.h"
+#include "des.h"
 
 /* Variable containing ADC conversions results */
 __IO uint16_t   aADCxConvertedValues[ADCCONVERTEDVALUES_BUFFER_SIZE];
@@ -31,6 +32,7 @@ SPI_HandleTypeDef SpiHandle;		/* SPI handler declaration */
 ADC_HandleTypeDef    AdcHandle;		/* ADC handler declaration */
 uint8_t USB_Receive_Buf[256];
 uint8_t USB_Send_Buf[256];
+uint8_t Random_Key[8];
 volatile uint16_t USB_Receive_count = 0;
 unsigned char level = 4;		// 定义测电流档位（1~4）,默认为4档
 unsigned char cntLevMax = 0;		// 测量大于最大电压计数
@@ -237,6 +239,7 @@ void SysTimInit(void)
 	memset(USB_Send_Buf, 0, sizeof(USB_Send_Buf));	// 设置发送数据为0
 	USB_Send_Buf[0] = 0xA7; USB_Send_Buf[1] = 0x59; USB_Send_Buf[2] = 0x3E; USB_Send_Buf[3] = 0xBD;		// 初始化头码
 	USB_Send_Buf[28] = 0x59; USB_Send_Buf[29] = 0x3E; USB_Send_Buf[30] = 0xBD;		// 初始化尾码
+	memset(&Random_Key, 0x00, sizeof(Random_Key));
 
 	// 初始化内部AD
 	/* Configure the ADC peripheral */
@@ -260,7 +263,7 @@ void SysTimInit(void)
 	
 //	/* Start ADC conversion */
 //	HAL_ADC_Start(&AdcHandle);
-	
+
 }
 
 void SetCurrentLevel(uint8_t lev)
@@ -332,6 +335,12 @@ void TimerLoop(void const *argument)
 //	static unsigned char LedFlag  = 1;
 	static uint16_t adValueBuf[2][ADCCONVERTEDVALUES_BUFFER_SIZE];
 	static unsigned int j = 0;
+	
+	static unsigned int k = 0;
+//	static unsigned char m_Value[3][8];
+//	static unsigned char e_Value[3][8];
+//	static unsigned char m_text[8];
+//	static unsigned char e_text[8];
 	
 	(void) argument;
 //	osEvent event;
@@ -427,6 +436,12 @@ void TimerLoop(void const *argument)
 						else if(USB_Receive_Buf[4] == 0x21)
 						{
 								HAL_GPIO_WritePin(LED_2_PORT,LED_2_PIN, GPIO_PIN_SET);	// LED2  OFF
+								memset(&Random_Key, 0x00, sizeof(Random_Key));
+						}
+						else if(USB_Receive_Buf[4] == 0x30)
+						{
+								memcpy(Random_Key, USB_Receive_Buf + 16, sizeof(Random_Key));		// 接收随机密钥
+								SendRandomKeySuccess();
 						}
 						continue;
 				}
@@ -574,10 +589,19 @@ void TimerLoop(void const *argument)
 			{
 				memcpy(USB_Send_Buf + 14, USB_Send_Buf + 4, 10);
 			}
-			
+
 			USB_Send_Buf[25] = sSendData.index; USB_Send_Buf[26] = sSendData.tips[sSendData.index - 1];			// 0x0000表示电流正常
 			USB_Send_Buf[27] = sSendData.level[sSendData.index - 1];
 			
+			// 使用随机密钥加密
+			for(k = 0; k < 24; k ++)
+			{
+					USB_Send_Buf[4 + k] = USB_Send_Buf[4 + k] ^ Random_Key[k % 8];
+			}
+//			endes(m_text, Random_Key, m_text);
+//			endes(m_Value[1], Random_Key, e_Value[1]);
+//			endes(m_Value[2], Random_Key, e_Value[2]);
+//			memcpy(USB_Send_Buf + 4, e_Value, sizeof(e_Value));
 //			USB_Send_Buf[16] = testCnt; USB_Send_Buf[17] = testCnt >> 8; 
 //			USB_Send_Buf[18] = testCnt >> 16; USB_Send_Buf[19] = testCnt >> 24;
 //			USB_Send_Buf[20] = testUsbSendCnt; USB_Send_Buf[21] = testUsbSendCnt >> 8; 

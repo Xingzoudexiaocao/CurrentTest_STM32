@@ -13,6 +13,7 @@
 #include "system.h"
 #include "UpdataApp.h"
 #include "Flash.h"
+#include "des.h"
 // 定义局部变量数组大小超过1024字节，调用menset/memcpy函数是会导致程序奔溃，解决方法：定义为静态static；
 void TestWriteFlash(void)
 {		
@@ -59,11 +60,16 @@ void TestWriteFlash(void)
 // 发送程序软件版本号和文件长度信息
 void SendVersionLength(void)
 {
-	u8 buf[32];
+	u8 buf[32], bootValue1, bootValue2;
 	memset(&buf, YMODEM_VER_LEN, 32);	// Send YMODEM_VER_LEN
 	MemoryRead((u8 *)(PAGE_ADDR + 4), sizeof(buf),0,buf + 4);	// 读取版本号和文件长度
-	if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
-		USBD_CUSTOM_HID_SendReport(&USBD_Device, buf, 32);	// 发送数据
+	bootValue1 = *(u8 *)(PAGE_ADDR + 1);
+	bootValue2 = *(u8 *)(PAGE_ADDR + 2);
+	if(bootValue1 == 0x00 && bootValue2 == 0x00)		// 0x42 0x00 0x00 0x00才允许发送版本号给上位机
+	{
+		if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+			USBD_CUSTOM_HID_SendReport(&USBD_Device, buf, 32);	// 发送数据
+	}
 	
 }
 // 设置校验值到Flash，同时发送校验值给上位机
@@ -83,4 +89,16 @@ void SetVerifyValue(u8 lev, u32 val)
 	if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
 		USBD_CUSTOM_HID_SendReport(&USBD_Device, buf, 32);	// 发送数据
 	
+}
+
+void SendRandomKeySuccess(void)
+{
+	u8 buf[32];
+	u16 crcTmp = 0;
+	memset(&buf, YMODEM_RANDOM_KEY, 32);	// Send YMODEM_VER_LEN
+//	memcpy(buf + 16, Random_Key, sizeof(Random_Key));
+	crcTmp = YModemCRC(Random_Key, 8);
+	buf[4] = crcTmp >> 8; buf[5] = crcTmp;
+	if (USBD_Device.dev_state == USBD_STATE_CONFIGURED )
+		USBD_CUSTOM_HID_SendReport(&USBD_Device, buf, 32);	// 发送数据
 }

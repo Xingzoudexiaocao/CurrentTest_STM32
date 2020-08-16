@@ -87,6 +87,24 @@ void USART_Config(void);
 static void LED_Thread(void const *argument);
 /* Private functions ---------------------------------------------------------*/
 
+void FlashProtectCheck(void)
+{
+	FLASH_OBProgramInitTypeDef OBInit;
+	HAL_FLASH_Unlock();		// 解锁
+	HAL_FLASH_OB_Unlock();
+	
+	HAL_FLASHEx_OBGetConfig(&OBInit);
+	if(OBInit.RDPLevel != OB_RDP_LEVEL_1)
+	{
+		OBInit.OptionType = OPTIONBYTE_RDP;
+		OBInit.RDPLevel = OB_RDP_LEVEL_1;
+		HAL_FLASHEx_OBProgram(&OBInit);
+	}
+	
+	HAL_FLASH_OB_Lock();
+	HAL_FLASH_Lock();		// 上锁
+}
+
 int main(void)
 {
 	SCB->VTOR = ((uint32_t)0x8000000) | (0x2000 & (uint32_t)0x1FFFFF80);
@@ -102,7 +120,7 @@ int main(void)
        - Low Level Initialization
      */
   HAL_Init();
-
+	
   /* Configure the system clock to 64 MHz */
   SystemClock_Config();
 	
@@ -155,6 +173,18 @@ int main(void)
   osKernelStart();
 //	void const *argument;
 		
+	FlashProtectCheck();		// FLASH读写保护
+//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOF, ENABLE);	 //使能相应接口的时钟，以及RCC_APB2Periph_AFIO
+
+// GPIO_PinRemapConfig(GPIO_Remap_SWJ_Disable, ENABLE);//完全禁用SWD及JTAG 
+// GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);     //禁用JTAG
+	/* JTAG-DP Disabled and SW-DP Disabled */
+	__HAL_RCC_AFIO_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();           	//
+	__HAL_RCC_GPIOF_CLK_ENABLE();           	//
+  __HAL_AFIO_REMAP_SWJ_DISABLE();			//完全禁用SWD及JTAG 
+	__HAL_AFIO_REMAP_SWJ_NOJTAG();				//禁用JTAG
+	
   while (1)
   {
 //		LED_Thread(argument);

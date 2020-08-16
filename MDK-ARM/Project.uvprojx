@@ -700,6 +700,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\UpdataApp.c</FilePath>
             </File>
+            <File>
+              <FileName>des.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\des.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

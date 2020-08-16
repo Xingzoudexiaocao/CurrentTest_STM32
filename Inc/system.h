@@ -85,6 +85,7 @@
 #define YMODEM_TIMEOUT (0x7B)
 #define YMODEM_VALID_VALUE_1 (0x56)
 #define YMODEM_VALID_VALUE_2 (0x59)
+#define YMODEM_RANDOM_KEY (0xDB)
 
 //#define YMODEM_CAN (0x18)
 //#define YMODEM_C (0x43)
@@ -114,6 +115,7 @@ extern SPI_HandleTypeDef SpiHandle;
 extern ADC_HandleTypeDef    AdcHandle;
 extern uint8_t USB_Receive_Buf[256];
 extern uint8_t USB_Send_Buf[256];
+extern uint8_t Random_Key[8];
 extern volatile uint16_t USB_Receive_count; 
 extern unsigned char level;
 extern unsigned char cntLevMax;		// 测量大于最大电压计数
@@ -131,5 +133,6 @@ extern void SysTimInit(void);
 extern void SetCurrentLevel(uint8_t lev);
 extern void TimerLoop(void const *argument);
 
+extern unsigned short YModemCRC(unsigned char *buf, int len);
 #endif
 

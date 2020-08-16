@@ -13,6 +13,7 @@
 extern void TestWriteFlash(void);
 extern void SendVersionLength(void);
 extern void SetVerifyValue(u8 lev, u32 val);
+extern void SendRandomKeySuccess(void);
 	
 #endif
 
