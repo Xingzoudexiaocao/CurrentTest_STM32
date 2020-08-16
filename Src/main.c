@@ -173,7 +173,7 @@ int main(void)
   osKernelStart();
 //	void const *argument;
 		
-	FlashProtectCheck();		// FLASH读写保护
+	FlashProtectCheck();		// FLASH读写保护 
 //	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOF, ENABLE);	 //使能相应接口的时钟，以及RCC_APB2Periph_AFIO
 
 // GPIO_PinRemapConfig(GPIO_Remap_SWJ_Disable, ENABLE);//完全禁用SWD及JTAG 
